@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum ClassMode {
+  SCHEDULED
+  ON_DEMAND
+}
+
+enum ClassStatus {
+  OPEN
+  FULL
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum EnrollmentStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+  COMPLETED
+}
+
+enum CertificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RecordingStatus {
+  NOT_RECORDED
+  RECORDING
+  AVAILABLE
+  DELETED
+}
+
+model User {
+  id                String            @id @default(cuid())
+  name              String
+  email             String            @unique
+  passwordHash      String
+  role              Role              @default(CLIENT)
+  guidelinesAcceptedAt DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  instructorProfile InstructorProfile?
+  classSessions     ClassSession[]    @relation("InstructorSessions")
+  enrollments       Enrollment[]      @relation("ClientEnrollments")
+  reviewedCertifications Certification[] @relation("CertificationReviewer")
+  classAudits       ClassAudit[]      @relation("ClassAuditor")
+}
+
+model InstructorProfile {
+  id                      String       @id @default(cuid())
+  userId                  String       @unique
+  user                    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio                     String       @default("")
+  isAvailableOnDemand     Boolean      @default(false)
+  onDemandDurationMinutes Int?
+  onDemandCapacity        Int?
+  onDemandPricePerStudent Float?
+  isCertified             Boolean      @default(false)
+  specialties             Specialty[]  @relation("InstructorSpecialties")
+  languages               Language[]   @relation("InstructorLanguages")
+  certifications          Certification[]
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+}
+
+model Certification {
+  id                  String              @id @default(cuid())
+  instructorProfileId String
+  instructorProfile   InstructorProfile   @relation(fields: [instructorProfileId], references: [id], onDelete: Cascade)
+  fileName            String
+  storagePath         String
+  status              CertificationStatus @default(PENDING)
+  reviewedById        String?
+  reviewedBy          User?               @relation("CertificationReviewer", fields: [reviewedById], references: [id])
+  reviewNotes         String              @default("")
+  submittedAt         DateTime            @default(now())
+  reviewedAt          DateTime?
+}
+
+model Specialty {
+  id            String        @id @default(cuid())
+  name          String        @unique
+  slug          String        @unique
+  description   String        @default("")
+  instructors   InstructorProfile[] @relation("InstructorSpecialties")
+  classSessions ClassSession[]      @relation("ClassSpecialties")
+}
+
+model Language {
+  id            String              @id @default(cuid())
+  name          String              @unique
+  instructors   InstructorProfile[] @relation("InstructorLanguages")
+  classSessions ClassSession[]      @relation("ClassLanguages")
+}
+
+model ClassSession {
+  id               String        @id @default(cuid())
+  instructorId     String
+  instructor       User          @relation("InstructorSessions", fields: [instructorId], references: [id], onDelete: Cascade)
+  mode             ClassMode     @default(SCHEDULED)
+  title            String
+  description      String        @default("")
+  startTime        DateTime
+  durationMinutes  Int
+  capacity         Int?
+  pricePerStudent  Float
+  status           ClassStatus   @default(OPEN)
+  videoRoomSlug    String        @unique
+  recordingStatus  RecordingStatus @default(NOT_RECORDED)
+  recordingPath    String?
+  recordingExpiresAt DateTime?
+  specialties      Specialty[]   @relation("ClassSpecialties")
+  languages        Language[]    @relation("ClassLanguages")
+  enrollments      Enrollment[]
+  audits           ClassAudit[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([startTime])
+  @@index([mode, status])
+}
+
+model ClassAudit {
+  id             String       @id @default(cuid())
+  classSessionId String
+  classSession   ClassSession @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
+  adminId        String
+  admin          User         @relation("ClassAuditor", fields: [adminId], references: [id])
+  rating         Int
+  notes          String       @default("")
+  flagged        Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+}
+
+model Enrollment {
+  id              String            @id @default(cuid())
+  classSessionId  String
+  classSession    ClassSession      @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
+  clientId        String
+  client          User              @relation("ClientEnrollments", fields: [clientId], references: [id], onDelete: Cascade)
+  status          EnrollmentStatus  @default(PENDING)
+  priceCharged    Float
+  commissionAmount Float
+  requestedAt     DateTime          @default(now())
+  respondedAt     DateTime?
+
+  @@unique([classSessionId, clientId])
+}
+
+model PriceFloor {
+  id                 String @id @default(cuid())
+  durationMinutes    Int    @unique
+  minPricePerStudent Float
+}
+
+model PlatformSettings {
+  id                     String   @id @default("singleton")
+  commissionPercent      Float    @default(10)
+  maxMarkupPercent       Float    @default(25)
+  recordingRetentionDays Int      @default(7)
+  updatedAt              DateTime @updatedAt
+}
