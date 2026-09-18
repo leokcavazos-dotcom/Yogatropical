@@ -1,3 +1,5 @@
+import { WAIVER_TEXT } from "@/lib/waiver";
+
 export default function GuidelinesPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
@@ -6,6 +8,14 @@ export default function GuidelinesPage() {
         Classes happen live, on video, with real people showing up as they are. These guidelines keep the space
         warm, welcoming, and comfortable for everyone — instructors and students alike.
       </p>
+
+      <section className="mt-10">
+        <h2 className="font-serif text-2xl text-clay-dark">Health &amp; safety</h2>
+        <p className="mt-3 whitespace-pre-line leading-relaxed text-foreground/90">{WAIVER_TEXT}</p>
+        <p className="mt-3 text-sm text-foreground/60">
+          You&apos;ll sign a short version of this during onboarding, before your first booking or class.
+        </p>
+      </section>
 
       <section className="mt-10">
         <h2 className="font-serif text-2xl text-clay-dark">What to wear on camera</h2>

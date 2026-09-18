@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import AdSlot from "@/components/AdSlot";
 
 interface Specialty {
   id: string;
@@ -197,6 +198,11 @@ export default function BrowsePage() {
       </section>
 
       {message && <p className="mt-4 rounded-lg bg-palm/10 px-4 py-2 text-sm text-palm-dark">{message}</p>}
+
+      <AdSlot
+        imageUrl={process.env.NEXT_PUBLIC_AD_SLOT_BROWSE_IMAGE_URL}
+        linkUrl={process.env.NEXT_PUBLIC_AD_SLOT_BROWSE_LINK_URL}
+      />
 
       <section className="mt-6 space-y-4">
         {loading && <p className="text-foreground/60">Loading…</p>}

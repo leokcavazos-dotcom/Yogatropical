@@ -54,6 +54,11 @@ model User {
   passwordHash      String
   role              Role              @default(CLIENT)
   guidelinesAcceptedAt DateTime?
+  onboardingCompletedAt DateTime?
+  phone             String?
+  preferredLanguageId String?
+  preferredLanguage Language?         @relation("UserPreferredLanguage", fields: [preferredLanguageId], references: [id])
+  stripeCustomerId  String?
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   instructorProfile InstructorProfile?
@@ -61,6 +66,18 @@ model User {
   enrollments       Enrollment[]      @relation("ClientEnrollments")
   reviewedCertifications Certification[] @relation("CertificationReviewer")
   classAudits       ClassAudit[]      @relation("ClassAuditor")
+  safetyAcknowledgments SafetyAcknowledgment[]
+}
+
+model SafetyAcknowledgment {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  version    String
+  signedName String
+  acceptedAt DateTime @default(now())
+
+  @@unique([userId, version])
 }
 
 model InstructorProfile {
@@ -73,6 +90,7 @@ model InstructorProfile {
   onDemandCapacity        Int?
   onDemandPricePerStudent Float?
   isCertified             Boolean      @default(false)
+  payoutEmail             String?
   specialties             Specialty[]  @relation("InstructorSpecialties")
   languages               Language[]   @relation("InstructorLanguages")
   certifications          Certification[]
@@ -104,10 +122,11 @@ model Specialty {
 }
 
 model Language {
-  id            String              @id @default(cuid())
-  name          String              @unique
-  instructors   InstructorProfile[] @relation("InstructorLanguages")
-  classSessions ClassSession[]      @relation("ClassLanguages")
+  id              String              @id @default(cuid())
+  name            String              @unique
+  instructors     InstructorProfile[] @relation("InstructorLanguages")
+  classSessions   ClassSession[]      @relation("ClassLanguages")
+  preferringUsers User[]              @relation("UserPreferredLanguage")
 }
 
 model ClassSession {

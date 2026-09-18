@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
+import PalmTreeLogo from "@/components/PalmTreeLogo";
 
 export default async function NavBar() {
   const session = await auth();
@@ -14,7 +15,8 @@ export default async function NavBar() {
   return (
     <header className="border-b border-sand bg-background/80 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <Link href="/" className="font-serif text-xl text-palm-dark">
+        <Link href="/" className="flex items-center gap-2 font-serif text-xl text-palm-dark">
+          <PalmTreeLogo className="h-8 w-8" />
           Yoga Tropical
         </Link>
         <div className="flex items-center gap-5 text-sm font-medium text-foreground/80">

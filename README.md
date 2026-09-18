@@ -12,6 +12,8 @@ for the full mission and Code of Conduct.
 - **Auth.js (NextAuth v5)** with a credentials (email/password) provider and JWT sessions — no separate
   Account/Session tables needed
 - **Jitsi Meet** (public server, no account required) for the live video rooms
+- **Stripe** (`stripe`, `@stripe/stripe-js`, `@stripe/react-stripe-js`) for the onboarding payment step —
+  dormant until API keys are set, see "Payments"
 
 ## Getting started
 
@@ -52,13 +54,43 @@ Demo accounts (password `password123` for all): `admin@yogatropical.demo`, `inst
   `ClassSession.recordingPath` when a recording finishes. Run `purgeExpiredRecordings()` on a schedule (cron /
   serverless function) once real recordings exist.
 
+## Onboarding
+
+New accounts land on `/onboarding` (a short, 4-screen wizard — welcome, quick profile, safety waiver, payment)
+before their dashboard, rather than being dropped straight in:
+
+1. **Welcome** — a role-aware video slot (`src/components/WelcomeVideo.tsx`). Point
+   `NEXT_PUBLIC_WELCOME_VIDEO_CLIENT_URL` / `_INSTRUCTOR_URL` at a video file (an AI-generated one to start,
+   real footage later — either way, no code changes needed) and it plays; leave them unset and a designed
+   gradient panel with the palm tree mark shows instead, so the step never looks broken.
+2. **Quick profile** — clients set an optional phone/preferred language; instructors set bio/specialties/
+   languages (the same fields as their dashboard profile, just condensed into the wizard).
+3. **Safety waiver** — the health & safety text in `src/lib/waiver.ts` (pregnancy/high blood pressure/consult
+   a physician/stop if it hurts), signed by typing your name. This is a **hard gate**, not just a checkbox:
+   `requestEnrollment`, `createScheduledClass`, and `requestOnDemandSession` in
+   `src/lib/classSessionService.ts` all refuse to proceed until `SafetyAcknowledgment` has a row for that
+   user at the current `WAIVER_VERSION`. Bumping `WAIVER_VERSION` invalidates old signatures and re-prompts
+   everyone next time they try to book or publish.
+4. **Payment** — see "Payments" below.
+
+Anyone who hasn't signed the current waiver sees a small "Finish onboarding" banner on their dashboard
+(`src/components/OnboardingBanner.tsx`, wired in via `src/app/dashboard/layout.tsx`).
+
 ## Payments
 
-Pricing and commission math is fully implemented, but no money actually moves yet — `Enrollment.priceCharged`
-and `commissionAmount` are computed and stored, but there's no payment collection. To go live, wire Stripe (or
-similar) at the point an enrollment is accepted: create a PaymentIntent/Checkout Session for `priceCharged`,
-and split `commissionAmount` to the platform vs. the rest to the instructor (Stripe Connect is a natural fit
-for the split). `.env.example` has placeholders for Stripe keys.
+Pricing and commission math is fully implemented — `Enrollment.priceCharged` and `commissionAmount` are
+computed and stored on every request — but no money moves until Stripe is actually configured.
+
+The onboarding payment step is real, working Stripe integration (a `SetupIntent` + Stripe Elements
+`CardElement`, so raw card numbers never touch our server) that simply stays inactive — showing a friendly
+"coming soon" message instead — until `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` are set.
+Once they are, clients get a real "add a payment method" step and `src/app/api/payments/setup-intent/route.ts`
+creates a Stripe customer + SetupIntent per user (`User.stripeCustomerId`). Instructors instead set a
+`payoutEmail` (just a payout destination, no card/bank data collected there).
+
+What's still missing for money to actually move: charging the client's saved payment method and splitting
+`commissionAmount` to the platform vs. the rest to the instructor at the point an enrollment is accepted —
+Stripe Connect is a natural fit for that split. That part isn't built yet.
 
 ## Business model & governance (in progress)
 
@@ -72,26 +104,43 @@ for the split). `.env.example` has placeholders for Stripe keys.
   - Possibly a tiered commission (e.g., ~10% for new instructors, ~8% for tenured/loyal ones), still under
     the same rough cap.
   - Once the cooperative is running, sharing a percentage of commission revenue (~10% floated) back to
-    instructors as a profit-sharing pool, weighted by a workload formula that hasn't been defined yet.
+    instructors as a profit-sharing pool, weighted by a workload formula that hasn't been defined yet —
+    possibly with merch store and ad revenue feeding the same pool alongside commission.
   - None of the above is implemented in code — it's intentionally left as policy/config to define later, and
     `ClassSession`/`Enrollment` records already carry the instructor, duration, and date data needed to compute
     tenure and hours-taught whenever that formula is ready.
+
+## Ads & other revenue streams
+
+There's one reserved, opt-in ad placement on the browse page (`src/components/AdSlot.tsx`, controlled by
+`NEXT_PUBLIC_AD_SLOT_BROWSE_IMAGE_URL` / `_LINK_URL`). It renders nothing at all when unset — not a
+placeholder box — so it's genuinely non-intrusive until there's a real ad to show. No ad network is wired up;
+this is just the reserved slot in the layout.
+
+The idea of ads (and merch store revenue, below) feeding into the same eventual instructor profit-sharing pool
+as commission revenue is still just that — an idea, not implemented. See "Business model & governance."
 
 ## Not yet built (roadmap)
 
 - **Merchandise store** (mats, tai chi/yoga gear, etc.) — a separate product catalog, cart, and checkout flow.
   Not started; would live alongside the booking flow as its own module.
-- Real payment collection (see "Payments" above).
+- Actual ad network integration (see "Ads & other revenue streams" above — only the placement is reserved).
+- Charging clients and splitting payouts to instructors (see "Payments" above).
 - Actual video recording capture (see "Recordings" above).
 - Cooperative governance/voting tooling — deliberately deferred; see "Business model & governance."
+- Real onboarding videos — the video slot is wired up (see "Onboarding" above), but no video file exists yet.
 
 ## Project structure
 
 - `prisma/schema.prisma` — data model (users/roles, instructor profiles, specialties, languages,
-  certifications, class sessions, enrollments, class audits, platform settings/price floors)
+  certifications, safety acknowledgments, class sessions, enrollments, class audits, platform
+  settings/price floors)
 - `src/lib/` — business logic: `pricing.ts` (price bands + commission), `classSessionService.ts`
-  (create/request/accept/decline + on-demand), `certificationStorage.ts` (local file storage, swap for
-  S3/GCS in production), `recordings.ts`, `video.ts` (Jitsi room helpers), `auth.ts`
+  (create/request/accept/decline + on-demand, all waiver-gated), `certificationStorage.ts` (local file
+  storage, swap for S3/GCS in production), `recordings.ts`, `video.ts` (Jitsi room helpers), `waiver.ts`
+  (safety waiver text + version), `stripe.ts`, `onboarding.ts`, `auth.ts`
 - `src/app/api/` — REST-ish route handlers backing all of the above
-- `src/app/(pages)` — `/`, `/browse`, `/about`, `/guidelines`, `/login`, `/signup`,
+- `src/app/(pages)` — `/`, `/browse`, `/about`, `/guidelines`, `/login`, `/signup`, `/onboarding`,
   `/dashboard/{client,instructor,admin}`, `/room/[id]`
+- `src/components/` — `PalmTreeLogo.tsx` (the one-tree mark used in the nav bar and onboarding),
+  `WelcomeVideo.tsx`, `AdSlot.tsx`, `OnboardingBanner.tsx`, `onboarding/PaymentMethodStep.tsx`

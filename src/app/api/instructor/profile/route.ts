@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { ALLOWED_DURATIONS_MINUTES, getPriceBand, validatePriceAgainstBand } from "@/lib/pricing";
+import { hasSignedCurrentWaiver } from "@/lib/onboarding";
 
 export async function GET() {
   const session = await auth();
@@ -18,6 +19,7 @@ export async function GET() {
 
 const UpdateProfileSchema = z.object({
   bio: z.string().max(2000).optional(),
+  payoutEmail: z.string().email().max(200).nullable().optional(),
   specialtyIds: z.array(z.string()).optional(),
   languageIds: z.array(z.string()).optional(),
   isAvailableOnDemand: z.boolean().optional(),
@@ -61,12 +63,19 @@ export async function PATCH(request: Request) {
         { status: 400 },
       );
     }
+    if (!(await hasSignedCurrentWaiver(session.user.id))) {
+      return NextResponse.json(
+        { error: "Please finish onboarding and sign the safety waiver first." },
+        { status: 400 },
+      );
+    }
   }
 
   const updated = await prisma.instructorProfile.update({
     where: { userId: session.user.id },
     data: {
       bio: data.bio,
+      payoutEmail: data.payoutEmail,
       isAvailableOnDemand: data.isAvailableOnDemand,
       onDemandDurationMinutes: data.onDemandDurationMinutes,
       onDemandCapacity: data.onDemandCapacity,

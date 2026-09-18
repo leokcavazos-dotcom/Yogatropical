@@ -39,7 +39,7 @@ function SignupForm() {
     }
     await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
-    router.push(role === "INSTRUCTOR" ? "/dashboard/instructor" : "/dashboard/client");
+    router.push("/onboarding");
     router.refresh();
   }
 

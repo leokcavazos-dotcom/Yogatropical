@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { generateVideoRoomSlug } from "@/lib/video";
 import { getPriceBand, validatePriceAgainstBand, isAllowedDuration } from "@/lib/pricing";
+import { hasSignedCurrentWaiver } from "@/lib/onboarding";
+
+const WAIVER_REQUIRED_MESSAGE = "Please finish onboarding and sign the safety waiver first.";
 
 export class ClassSessionError extends Error {}
 
@@ -17,6 +20,9 @@ interface CreateScheduledClassInput {
 }
 
 export async function createScheduledClass(input: CreateScheduledClassInput) {
+  if (!(await hasSignedCurrentWaiver(input.instructorId))) {
+    throw new ClassSessionError(WAIVER_REQUIRED_MESSAGE);
+  }
   const profile = await prisma.instructorProfile.findUnique({ where: { userId: input.instructorId } });
   if (!profile) throw new ClassSessionError("Only instructors can publish classes.");
   if (!profile.isCertified) {
@@ -60,6 +66,9 @@ export async function createScheduledClass(input: CreateScheduledClassInput) {
 }
 
 export async function requestOnDemandSession(instructorUserId: string, clientId: string) {
+  if (!(await hasSignedCurrentWaiver(instructorUserId))) {
+    throw new ClassSessionError("This instructor hasn't finished onboarding yet.");
+  }
   const profile = await prisma.instructorProfile.findUnique({ where: { userId: instructorUserId } });
   if (!profile) throw new ClassSessionError("Instructor not found.");
   if (!profile.isCertified) throw new ClassSessionError("This instructor isn't approved to teach yet.");
@@ -86,6 +95,9 @@ export async function requestOnDemandSession(instructorUserId: string, clientId:
 }
 
 export async function requestEnrollment(classSessionId: string, clientId: string) {
+  if (!(await hasSignedCurrentWaiver(clientId))) {
+    throw new ClassSessionError(WAIVER_REQUIRED_MESSAGE);
+  }
   const session = await prisma.classSession.findUnique({
     where: { id: classSessionId },
     include: { _count: { select: { enrollments: { where: { status: "ACCEPTED" } } } } },
