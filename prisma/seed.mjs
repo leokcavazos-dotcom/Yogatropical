@@ -62,6 +62,14 @@ async function main() {
     await prisma.language.upsert({ where: { name }, update: {}, create: { name } });
   }
 
+  // Reference data (specialties/languages/price floors/platform settings) is
+  // always safe to seed. Demo login accounts are only for trying the app out —
+  // skip them in a real production database with SEED_DEMO_ACCOUNTS=false.
+  if (process.env.SEED_DEMO_ACCOUNTS === "false") {
+    console.log("Seed complete (reference data only, demo accounts skipped).");
+    return;
+  }
+
   const demoPasswordHash = await bcrypt.hash("password123", 10);
 
   await prisma.user.upsert({
