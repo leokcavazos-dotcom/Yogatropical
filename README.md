@@ -7,8 +7,8 @@ for the full mission and Code of Conduct.
 ## Stack
 
 - **Next.js (App Router) + TypeScript + Tailwind CSS**
-- **Prisma + SQLite** for data (swap `DATABASE_URL` for a Postgres connection string in production — the schema
-  doesn't use any SQLite-specific features)
+- **Prisma + Postgres** for data (works with any Postgres host — Vercel Postgres, Neon, Supabase, Railway, or
+  a local instance for development)
 - **Auth.js (NextAuth v5)** with a credentials (email/password) provider and JWT sessions — no separate
   Account/Session tables needed
 - **Jitsi Meet** (public server, no account required) for the live video rooms
@@ -19,11 +19,14 @@ for the full mission and Code of Conduct.
 
 ```bash
 npm install
-cp .env.example .env   # then edit AUTH_SECRET, etc.
+cp .env.example .env   # then edit DATABASE_URL, AUTH_SECRET, etc.
 npx prisma migrate dev
 npm run db:seed        # creates demo admin/instructor/client accounts, specialties, languages, price floors
 npm run dev
 ```
+
+You need a Postgres database to point `DATABASE_URL` at — either run one locally, or use a free one from
+Vercel Postgres/Neon/Supabase even for local development.
 
 Demo accounts (password `password123` for all): `admin@yogatropical.demo`, `instructor@yogatropical.demo`,
 `client@yogatropical.demo`.
