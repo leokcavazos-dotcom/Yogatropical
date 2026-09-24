@@ -18,6 +18,11 @@ enum ClassMode {
   ON_DEMAND
 }
 
+enum DeliveryMethod {
+  VIRTUAL
+  IN_PERSON
+}
+
 enum ClassStatus {
   OPEN
   FULL
@@ -91,6 +96,11 @@ model InstructorProfile {
   onDemandPricePerStudent Float?
   isCertified             Boolean      @default(false)
   payoutEmail             String?
+  offersInPerson          Boolean      @default(false)
+  travelServiceArea       String?
+  inPersonDurationMinutes Int?
+  inPersonCapacity        Int?
+  inPersonPricePerStudent Float?
   specialties             Specialty[]  @relation("InstructorSpecialties")
   languages               Language[]   @relation("InstructorLanguages")
   certifications          Certification[]
@@ -134,6 +144,8 @@ model ClassSession {
   instructorId     String
   instructor       User          @relation("InstructorSessions", fields: [instructorId], references: [id], onDelete: Cascade)
   mode             ClassMode     @default(SCHEDULED)
+  deliveryMethod   DeliveryMethod @default(VIRTUAL)
+  locationAddress  String?
   title            String
   description      String        @default("")
   startTime        DateTime
@@ -141,7 +153,7 @@ model ClassSession {
   capacity         Int?
   pricePerStudent  Float
   status           ClassStatus   @default(OPEN)
-  videoRoomSlug    String        @unique
+  videoRoomSlug    String?       @unique
   recordingStatus  RecordingStatus @default(NOT_RECORDED)
   recordingPath    String?
   recordingExpiresAt DateTime?

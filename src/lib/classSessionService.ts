@@ -17,6 +17,8 @@ interface CreateScheduledClassInput {
   pricePerStudent: number;
   specialtyIds: string[];
   languageIds: string[];
+  deliveryMethod?: "VIRTUAL" | "IN_PERSON";
+  locationAddress?: string;
 }
 
 export async function createScheduledClass(input: CreateScheduledClassInput) {
@@ -44,6 +46,12 @@ export async function createScheduledClass(input: CreateScheduledClassInput) {
     throw new ClassSessionError("Pick at least one language the class will be taught in.");
   }
 
+  const deliveryMethod = input.deliveryMethod ?? "VIRTUAL";
+  const locationAddress = input.locationAddress?.trim() || null;
+  if (deliveryMethod === "IN_PERSON" && !locationAddress) {
+    throw new ClassSessionError("Add the address where this in-person class will happen.");
+  }
+
   const band = await getPriceBand(input.durationMinutes);
   const priceError = validatePriceAgainstBand(input.pricePerStudent, band);
   if (priceError) throw new ClassSessionError(priceError);
@@ -52,13 +60,15 @@ export async function createScheduledClass(input: CreateScheduledClassInput) {
     data: {
       instructorId: input.instructorId,
       mode: "SCHEDULED",
+      deliveryMethod,
+      locationAddress: deliveryMethod === "IN_PERSON" ? locationAddress : null,
       title: input.title,
       description: input.description ?? "",
       startTime: input.startTime,
       durationMinutes: input.durationMinutes,
       capacity: input.capacity,
       pricePerStudent: input.pricePerStudent,
-      videoRoomSlug: generateVideoRoomSlug(),
+      videoRoomSlug: deliveryMethod === "VIRTUAL" ? generateVideoRoomSlug() : null,
       specialties: { connect: input.specialtyIds.map((id) => ({ id })) },
       languages: { connect: input.languageIds.map((id) => ({ id })) },
     },
@@ -87,6 +97,48 @@ export async function requestOnDemandSession(instructorUserId: string, clientId:
       capacity: profile.onDemandCapacity,
       pricePerStudent: profile.onDemandPricePerStudent,
       videoRoomSlug: generateVideoRoomSlug(),
+    },
+  });
+
+  const enrollment = await requestEnrollment(session.id, clientId);
+  return { session, enrollment };
+}
+
+export async function requestInPersonSession(
+  instructorUserId: string,
+  clientId: string,
+  input: { startTime: Date; locationAddress: string },
+) {
+  if (!(await hasSignedCurrentWaiver(instructorUserId))) {
+    throw new ClassSessionError("This instructor hasn't finished onboarding yet.");
+  }
+  const profile = await prisma.instructorProfile.findUnique({ where: { userId: instructorUserId } });
+  if (!profile) throw new ClassSessionError("Instructor not found.");
+  if (!profile.isCertified) throw new ClassSessionError("This instructor isn't approved to teach yet.");
+  if (!profile.offersInPerson) throw new ClassSessionError("This instructor doesn't offer in-person sessions.");
+  if (!profile.inPersonDurationMinutes || !profile.inPersonPricePerStudent) {
+    throw new ClassSessionError("This instructor hasn't finished setting up their in-person pricing yet.");
+  }
+  if (input.startTime.getTime() <= Date.now()) {
+    throw new ClassSessionError("In-person sessions must be scheduled for a future date and time.");
+  }
+  const locationAddress = input.locationAddress.trim();
+  if (!locationAddress) {
+    throw new ClassSessionError("Add the address where you'd like the instructor to come.");
+  }
+
+  const session = await prisma.classSession.create({
+    data: {
+      instructorId: instructorUserId,
+      mode: "SCHEDULED",
+      deliveryMethod: "IN_PERSON",
+      locationAddress,
+      title: "In-person session",
+      startTime: input.startTime,
+      durationMinutes: profile.inPersonDurationMinutes,
+      capacity: profile.inPersonCapacity,
+      pricePerStudent: profile.inPersonPricePerStudent,
+      videoRoomSlug: null,
     },
   });
 

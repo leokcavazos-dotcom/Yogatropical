@@ -10,6 +10,7 @@ export async function GET(request: Request) {
   const duration = searchParams.get("duration");
   const specialtyId = searchParams.get("specialtyId");
   const languageId = searchParams.get("languageId");
+  const deliveryMethod = searchParams.get("deliveryMethod"); // VIRTUAL | IN_PERSON
 
   const where: Record<string, unknown> = {
     mode: "SCHEDULED",
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
   if (duration) where.durationMinutes = Number(duration);
   if (specialtyId) where.specialties = { some: { id: specialtyId } };
   if (languageId) where.languages = { some: { id: languageId } };
+  if (deliveryMethod === "VIRTUAL" || deliveryMethod === "IN_PERSON") where.deliveryMethod = deliveryMethod;
 
   const classes = await prisma.classSession.findMany({
     where,
@@ -50,6 +52,8 @@ const CreateClassSchema = z.object({
   pricePerStudent: z.number(),
   specialtyIds: z.array(z.string()).min(1),
   languageIds: z.array(z.string()).min(1),
+  deliveryMethod: z.enum(["VIRTUAL", "IN_PERSON"]).optional(),
+  locationAddress: z.string().max(500).optional(),
 });
 
 export async function POST(request: Request) {
@@ -72,6 +76,8 @@ export async function POST(request: Request) {
       pricePerStudent: parsed.data.pricePerStudent,
       specialtyIds: parsed.data.specialtyIds,
       languageIds: parsed.data.languageIds,
+      deliveryMethod: parsed.data.deliveryMethod,
+      locationAddress: parsed.data.locationAddress,
     });
     return NextResponse.json(created, { status: 201 });
   } catch (error) {

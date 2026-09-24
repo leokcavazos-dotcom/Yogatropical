@@ -20,6 +20,8 @@ interface ClassListItem {
   durationMinutes: number;
   capacity: number | null;
   pricePerStudent: number;
+  deliveryMethod: "VIRTUAL" | "IN_PERSON";
+  locationAddress: string | null;
   instructor: { id: string; name: string; instructorProfile: { bio: string } | null };
   specialties: Specialty[];
   languages: Language[];
@@ -31,6 +33,17 @@ interface OnDemandInstructor {
   onDemandDurationMinutes: number | null;
   onDemandPricePerStudent: number | null;
   onDemandCapacity: number | null;
+  user: { id: string; name: string };
+  specialties: Specialty[];
+  languages: Language[];
+}
+interface InPersonInstructor {
+  id: string;
+  bio: string;
+  travelServiceArea: string | null;
+  inPersonDurationMinutes: number | null;
+  inPersonPricePerStudent: number | null;
+  inPersonCapacity: number | null;
   user: { id: string; name: string };
   specialties: Specialty[];
   languages: Language[];
@@ -49,8 +62,11 @@ export default function BrowsePage() {
   const [duration, setDuration] = useState<number | "">("");
   const [specialtyId, setSpecialtyId] = useState("");
   const [languageId, setLanguageId] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState("");
   const [classes, setClasses] = useState<ClassListItem[]>([]);
   const [onDemand, setOnDemand] = useState<OnDemandInstructor[]>([]);
+  const [inPerson, setInPerson] = useState<InPersonInstructor[]>([]);
+  const [inPersonForms, setInPersonForms] = useState<Record<string, { date: string; time: string; address: string }>>({});
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -58,6 +74,7 @@ export default function BrowsePage() {
     fetch("/api/specialties").then((r) => r.json()).then(setSpecialties);
     fetch("/api/languages").then((r) => r.json()).then(setLanguages);
     fetch("/api/classes/on-demand").then((r) => r.json()).then(setOnDemand);
+    fetch("/api/classes/in-person").then((r) => r.json()).then(setInPerson);
   }, []);
 
   const loadClasses = useCallback(() => {
@@ -67,11 +84,12 @@ export default function BrowsePage() {
     if (duration) params.set("duration", String(duration));
     if (specialtyId) params.set("specialtyId", specialtyId);
     if (languageId) params.set("languageId", languageId);
+    if (deliveryMethod) params.set("deliveryMethod", deliveryMethod);
     fetch(`/api/classes?${params.toString()}`)
       .then((r) => r.json())
       .then(setClasses)
       .finally(() => setLoading(false));
-  }, [date, duration, specialtyId, languageId]);
+  }, [date, duration, specialtyId, languageId, deliveryMethod]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetch triggers a loading flag
@@ -109,6 +127,39 @@ export default function BrowsePage() {
     setMessage("Instant request sent — check your dashboard for the video link once accepted.");
   }
 
+  function updateInPersonForm(instructorId: string, field: "date" | "time" | "address", value: string) {
+    setInPersonForms((prev) => ({
+      ...prev,
+      [instructorId]: {
+        date: prev[instructorId]?.date ?? "",
+        time: prev[instructorId]?.time ?? "",
+        address: prev[instructorId]?.address ?? "",
+        [field]: value,
+      },
+    }));
+  }
+
+  async function requestInPerson(instructorId: string) {
+    setMessage(null);
+    const form = inPersonForms[instructorId];
+    if (!form?.date || !form?.time || !form?.address) {
+      setMessage("Pick a date, time, and address before requesting an in-person session.");
+      return;
+    }
+    const startTime = new Date(`${form.date}T${form.time}:00`).toISOString();
+    const res = await fetch("/api/classes/in-person/request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ instructorId, startTime, locationAddress: form.address }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setMessage(body.error ?? "Couldn't send that request.");
+      return;
+    }
+    setMessage("In-person request sent — you'll see it in your dashboard once the instructor responds.");
+  }
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="font-serif text-3xl text-palm-dark">Browse classes</h1>
@@ -136,6 +187,64 @@ export default function BrowsePage() {
                 </button>
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {inPerson.length > 0 && (
+        <section className="mt-8 rounded-2xl border border-palm/30 bg-palm/5 p-5">
+          <h2 className="font-serif text-xl text-palm-dark">Book someone to come to you</h2>
+          <p className="mt-1 text-sm text-foreground/70">
+            At your home, office, or organization — pick a date, time, and address.
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            {inPerson.map((inst) => {
+              const form = inPersonForms[inst.user.id] ?? { date: "", time: "", address: "" };
+              return (
+                <div key={inst.id} className="rounded-xl bg-white p-4 shadow-sm">
+                  <p className="font-semibold text-foreground">{inst.user.name}</p>
+                  <p className="text-xs text-foreground/60">
+                    {inst.specialties.map((s) => s.name).join(", ") || "General practice"} ·{" "}
+                    {inst.languages.map((l) => l.name).join(", ") || "Language not set"}
+                  </p>
+                  {inst.travelServiceArea && (
+                    <p className="mt-1 text-xs text-foreground/60">Travels to: {inst.travelServiceArea}</p>
+                  )}
+                  <p className="mt-1 text-sm text-foreground/80">
+                    {inst.inPersonDurationMinutes} min · ${inst.inPersonPricePerStudent?.toFixed(2)}/student
+                    {inst.inPersonCapacity ? ` · up to ${inst.inPersonCapacity} students` : " · open capacity"}
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="date"
+                        value={form.date}
+                        onChange={(e) => updateInPersonForm(inst.user.id, "date", e.target.value)}
+                        className="w-1/2 rounded-lg border border-stone-300 px-2 py-1 text-sm"
+                      />
+                      <input
+                        type="time"
+                        value={form.time}
+                        onChange={(e) => updateInPersonForm(inst.user.id, "time", e.target.value)}
+                        className="w-1/2 rounded-lg border border-stone-300 px-2 py-1 text-sm"
+                      />
+                    </div>
+                    <input
+                      placeholder="Address (home, office, organization)"
+                      value={form.address}
+                      onChange={(e) => updateInPersonForm(inst.user.id, "address", e.target.value)}
+                      className="w-full rounded-lg border border-stone-300 px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <button
+                    onClick={() => requestInPerson(inst.user.id)}
+                    className="mt-3 rounded-full bg-palm px-4 py-1.5 text-sm font-semibold text-white hover:bg-palm-dark"
+                  >
+                    Request in-person session
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
@@ -195,6 +304,18 @@ export default function BrowsePage() {
             ))}
           </select>
         </div>
+        <div>
+          <label className="block text-xs font-medium text-foreground/70">Delivery</label>
+          <select
+            value={deliveryMethod}
+            onChange={(e) => setDeliveryMethod(e.target.value)}
+            className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5"
+          >
+            <option value="">Any delivery</option>
+            <option value="VIRTUAL">Virtual</option>
+            <option value="IN_PERSON">In-person</option>
+          </select>
+        </div>
       </section>
 
       {message && <p className="mt-4 rounded-lg bg-palm/10 px-4 py-2 text-sm text-palm-dark">{message}</p>}
@@ -222,6 +343,9 @@ export default function BrowsePage() {
                   <p className="mt-1 text-xs text-foreground/60">
                     {c.specialties.map((s) => s.name).join(", ")} ·{" "}
                     {c.languages.map((l) => l.name).join(", ")}
+                  </p>
+                  <p className="mt-1 text-xs text-foreground/60">
+                    {c.deliveryMethod === "IN_PERSON" ? `📍 In-person at ${c.locationAddress}` : "💻 Virtual"}
                   </p>
                   {c.description && <p className="mt-2 text-sm text-foreground/80">{c.description}</p>}
                 </div>
