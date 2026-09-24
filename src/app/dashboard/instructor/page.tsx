@@ -22,6 +22,11 @@ interface Profile {
   onDemandDurationMinutes: number | null;
   onDemandCapacity: number | null;
   onDemandPricePerStudent: number | null;
+  offersInPerson: boolean;
+  travelServiceArea: string | null;
+  inPersonDurationMinutes: number | null;
+  inPersonCapacity: number | null;
+  inPersonPricePerStudent: number | null;
   specialties: Tag[];
   languages: Tag[];
   certifications: Certification[];
@@ -40,6 +45,8 @@ interface TeachingClass {
   capacity: number | null;
   status: string;
   mode: "SCHEDULED" | "ON_DEMAND";
+  deliveryMethod: "VIRTUAL" | "IN_PERSON";
+  locationAddress: string | null;
   specialties: Tag[];
   languages: Tag[];
   enrollments: Enrollment[];
@@ -64,6 +71,12 @@ export default function InstructorDashboard() {
   const [onDemandPrice, setOnDemandPrice] = useState(8);
   const [onDemandCapacity, setOnDemandCapacity] = useState<string>("");
 
+  const [offersInPersonOn, setOffersInPersonOn] = useState(false);
+  const [inPersonServiceArea, setInPersonServiceArea] = useState("");
+  const [inPersonDuration, setInPersonDuration] = useState(60);
+  const [inPersonPrice, setInPersonPrice] = useState(30);
+  const [inPersonCapacity, setInPersonCapacity] = useState<string>("");
+
   const [classTitle, setClassTitle] = useState("");
   const [classDescription, setClassDescription] = useState("");
   const [classDate, setClassDate] = useState("");
@@ -73,6 +86,8 @@ export default function InstructorDashboard() {
   const [classPrice, setClassPrice] = useState(24);
   const [classSpecialtyIds, setClassSpecialtyIds] = useState<string[]>([]);
   const [classLanguageIds, setClassLanguageIds] = useState<string[]>([]);
+  const [classDeliveryMethod, setClassDeliveryMethod] = useState<"VIRTUAL" | "IN_PERSON">("VIRTUAL");
+  const [classLocationAddress, setClassLocationAddress] = useState("");
 
   const loadProfile = useCallback(() => {
     fetch("/api/instructor/profile")
@@ -86,6 +101,11 @@ export default function InstructorDashboard() {
         if (p.onDemandDurationMinutes) setOnDemandDuration(p.onDemandDurationMinutes);
         if (p.onDemandPricePerStudent) setOnDemandPrice(p.onDemandPricePerStudent);
         setOnDemandCapacity(p.onDemandCapacity ? String(p.onDemandCapacity) : "");
+        setOffersInPersonOn(p.offersInPerson);
+        setInPersonServiceArea(p.travelServiceArea ?? "");
+        if (p.inPersonDurationMinutes) setInPersonDuration(p.inPersonDurationMinutes);
+        if (p.inPersonPricePerStudent) setInPersonPrice(p.inPersonPricePerStudent);
+        setInPersonCapacity(p.inPersonCapacity ? String(p.inPersonCapacity) : "");
       });
   }, []);
 
@@ -158,10 +178,32 @@ export default function InstructorDashboard() {
     if (res.ok) loadProfile();
   }
 
+  async function saveInPerson() {
+    setMessage(null);
+    const res = await fetch("/api/instructor/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        offersInPerson: offersInPersonOn,
+        travelServiceArea: inPersonServiceArea,
+        inPersonDurationMinutes: inPersonDuration,
+        inPersonPricePerStudent: inPersonPrice,
+        inPersonCapacity: inPersonCapacity ? Number(inPersonCapacity) : null,
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    setMessage(res.ok ? "In-person settings saved." : body.error ?? "Couldn't save in-person settings.");
+    if (res.ok) loadProfile();
+  }
+
   async function createClass() {
     setMessage(null);
     if (!classDate || !classTime) {
       setMessage("Pick a date and time for the class.");
+      return;
+    }
+    if (classDeliveryMethod === "IN_PERSON" && !classLocationAddress.trim()) {
+      setMessage("Add an address for this in-person class.");
       return;
     }
     const startTime = new Date(`${classDate}T${classTime}:00`).toISOString();
@@ -177,6 +219,8 @@ export default function InstructorDashboard() {
         pricePerStudent: classPrice,
         specialtyIds: classSpecialtyIds,
         languageIds: classLanguageIds,
+        deliveryMethod: classDeliveryMethod,
+        locationAddress: classDeliveryMethod === "IN_PERSON" ? classLocationAddress : undefined,
       }),
     });
     const body = await res.json().catch(() => ({}));
@@ -187,6 +231,8 @@ export default function InstructorDashboard() {
     setMessage("Class published.");
     setClassTitle("");
     setClassDescription("");
+    setClassDeliveryMethod("VIRTUAL");
+    setClassLocationAddress("");
     loadClasses();
   }
 
@@ -329,10 +375,74 @@ export default function InstructorDashboard() {
       </section>
 
       <section className="rounded-2xl border border-stone-200 p-5">
+        <h2 className="font-serif text-xl text-clay-dark">In-person availability</h2>
+        <label className="mt-2 flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={offersInPersonOn} onChange={(e) => setOffersInPersonOn(e.target.checked)} />
+          I&apos;m available for in-person sessions at a client&apos;s home, office, or organization
+        </label>
+        <div className="mt-3 flex flex-wrap gap-4">
+          <div>
+            <label className="block text-xs font-medium text-foreground/70">Travel service area</label>
+            <input
+              placeholder="e.g. Greater Miami area"
+              value={inPersonServiceArea}
+              onChange={(e) => setInPersonServiceArea(e.target.value)}
+              className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-foreground/70">Length</label>
+            <select value={inPersonDuration} onChange={(e) => setInPersonDuration(Number(e.target.value))} className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5">
+              {DURATIONS.map((d) => (
+                <option key={d} value={d}>
+                  {d} min
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-foreground/70">Price per student ($)</label>
+            <input type="number" step="0.5" value={inPersonPrice} onChange={(e) => setInPersonPrice(Number(e.target.value))} className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-1.5" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-foreground/70">Capacity (blank = unlimited)</label>
+            <input type="number" min={1} value={inPersonCapacity} onChange={(e) => setInPersonCapacity(e.target.value)} className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-1.5" />
+          </div>
+        </div>
+        <button onClick={saveInPerson} className="mt-4 rounded-full bg-gold px-5 py-2 text-sm font-semibold text-white hover:opacity-90">
+          Save in-person settings
+        </button>
+      </section>
+
+      <section className="rounded-2xl border border-stone-200 p-5">
         <h2 className="font-serif text-xl text-clay-dark">Publish a scheduled class</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <input placeholder="Title" value={classTitle} onChange={(e) => setClassTitle(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 sm:col-span-2" />
           <textarea placeholder="Description" value={classDescription} onChange={(e) => setClassDescription(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 sm:col-span-2" rows={2} />
+          <div className="flex gap-2 sm:col-span-2">
+            <button
+              type="button"
+              onClick={() => setClassDeliveryMethod("VIRTUAL")}
+              className={`rounded-full border px-3 py-1 text-sm ${classDeliveryMethod === "VIRTUAL" ? "border-clay bg-clay text-white" : "border-stone-300 text-foreground/70"}`}
+            >
+              Virtual
+            </button>
+            <button
+              type="button"
+              onClick={() => setClassDeliveryMethod("IN_PERSON")}
+              className={`rounded-full border px-3 py-1 text-sm ${classDeliveryMethod === "IN_PERSON" ? "border-clay bg-clay text-white" : "border-stone-300 text-foreground/70"}`}
+            >
+              In-person
+            </button>
+          </div>
+          {classDeliveryMethod === "IN_PERSON" && (
+            <input
+              placeholder="Address (home, office, organization)"
+              value={classLocationAddress}
+              onChange={(e) => setClassLocationAddress(e.target.value)}
+              className="rounded-lg border border-stone-300 px-3 py-2 sm:col-span-2"
+            />
+          )}
           <input type="date" value={classDate} onChange={(e) => setClassDate(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2" />
           <input type="time" value={classTime} onChange={(e) => setClassTime(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2" />
           <select value={classDuration} onChange={(e) => setClassDuration(Number(e.target.value))} className="rounded-lg border border-stone-300 px-3 py-2">
@@ -380,9 +490,15 @@ export default function InstructorDashboard() {
                     {new Date(c.startTime).toLocaleString()} · {c.durationMinutes} min · {c.mode} · {c.status}
                   </p>
                 </div>
-                <Link href={`/room/${c.id}`} className="rounded-full bg-palm px-4 py-1.5 text-sm font-semibold text-white hover:bg-palm-dark">
-                  Video room
-                </Link>
+                {c.deliveryMethod === "VIRTUAL" ? (
+                  <Link href={`/room/${c.id}`} className="rounded-full bg-palm px-4 py-1.5 text-sm font-semibold text-white hover:bg-palm-dark">
+                    Video room
+                  </Link>
+                ) : (
+                  <p className="text-sm text-foreground/70">
+                    <span className="font-medium">In-person:</span> {c.locationAddress}
+                  </p>
+                )}
               </div>
               <ul className="mt-3 space-y-2">
                 {c.enrollments.map((e) => (

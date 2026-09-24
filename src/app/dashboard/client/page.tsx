@@ -13,6 +13,8 @@ interface Booking {
     startTime: string;
     durationMinutes: number;
     mode: "SCHEDULED" | "ON_DEMAND";
+    deliveryMethod: "VIRTUAL" | "IN_PERSON";
+    locationAddress: string | null;
     instructor: { name: string };
     specialties: { id: string; name: string }[];
     languages: { id: string; name: string }[];
@@ -77,6 +79,11 @@ export default function ClientDashboard() {
                   {b.classSession.specialties.map((s) => s.name).join(", ")} ·{" "}
                   {b.classSession.languages.map((l) => l.name).join(", ")}
                 </p>
+                <p className="text-xs text-foreground/60">
+                  {b.classSession.deliveryMethod === "IN_PERSON"
+                    ? `📍 In-person at ${b.classSession.locationAddress}`
+                    : "💻 Virtual"}
+                </p>
               </div>
               <div className="text-right">
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[b.status]}`}>
@@ -86,13 +93,18 @@ export default function ClientDashboard() {
               </div>
             </div>
             <div className="mt-3 flex gap-3">
-              {b.status === "ACCEPTED" && (
+              {b.status === "ACCEPTED" && b.classSession.deliveryMethod === "VIRTUAL" && (
                 <Link
                   href={`/room/${b.classSession.id}`}
                   className="rounded-full bg-palm px-4 py-1.5 text-sm font-semibold text-white hover:bg-palm-dark"
                 >
                   Join video room
                 </Link>
+              )}
+              {b.status === "ACCEPTED" && b.classSession.deliveryMethod === "IN_PERSON" && (
+                <p className="text-sm text-foreground/80">
+                  <span className="font-medium">Location:</span> {b.classSession.locationAddress}
+                </p>
               )}
               {(b.status === "PENDING" || b.status === "ACCEPTED") && (
                 <button

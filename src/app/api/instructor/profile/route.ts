@@ -26,6 +26,11 @@ const UpdateProfileSchema = z.object({
   onDemandDurationMinutes: z.number().nullable().optional(),
   onDemandCapacity: z.number().nullable().optional(),
   onDemandPricePerStudent: z.number().nullable().optional(),
+  offersInPerson: z.boolean().optional(),
+  travelServiceArea: z.string().max(500).nullable().optional(),
+  inPersonDurationMinutes: z.number().nullable().optional(),
+  inPersonCapacity: z.number().nullable().optional(),
+  inPersonPricePerStudent: z.number().nullable().optional(),
 });
 
 export async function PATCH(request: Request) {
@@ -71,6 +76,37 @@ export async function PATCH(request: Request) {
     }
   }
 
+  if (data.offersInPerson) {
+    const duration = data.inPersonDurationMinutes;
+    const price = data.inPersonPricePerStudent;
+    if (!duration || !ALLOWED_DURATIONS_MINUTES.includes(duration as never)) {
+      return NextResponse.json({ error: "Pick a valid in-person class length." }, { status: 400 });
+    }
+    if (!price) {
+      return NextResponse.json({ error: "Set a price per student for in-person sessions." }, { status: 400 });
+    }
+    const band = await getPriceBand(duration);
+    const priceError = validatePriceAgainstBand(price, band);
+    if (priceError) return NextResponse.json({ error: priceError }, { status: 400 });
+    if (data.inPersonCapacity != null && data.inPersonCapacity < 1) {
+      return NextResponse.json({ error: "Capacity must be at least 1, or left unset for unlimited." }, { status: 400 });
+    }
+
+    const profile = await prisma.instructorProfile.findUnique({ where: { userId: session.user.id } });
+    if (!profile?.isCertified) {
+      return NextResponse.json(
+        { error: "Your certification is still pending review, so you can't offer in-person sessions yet." },
+        { status: 400 },
+      );
+    }
+    if (!(await hasSignedCurrentWaiver(session.user.id))) {
+      return NextResponse.json(
+        { error: "Please finish onboarding and sign the safety waiver first." },
+        { status: 400 },
+      );
+    }
+  }
+
   const updated = await prisma.instructorProfile.update({
     where: { userId: session.user.id },
     data: {
@@ -80,6 +116,11 @@ export async function PATCH(request: Request) {
       onDemandDurationMinutes: data.onDemandDurationMinutes,
       onDemandCapacity: data.onDemandCapacity,
       onDemandPricePerStudent: data.onDemandPricePerStudent,
+      offersInPerson: data.offersInPerson,
+      travelServiceArea: data.travelServiceArea,
+      inPersonDurationMinutes: data.inPersonDurationMinutes,
+      inPersonCapacity: data.inPersonCapacity,
+      inPersonPricePerStudent: data.inPersonPricePerStudent,
       ...(data.specialtyIds ? { specialties: { set: data.specialtyIds.map((id) => ({ id })) } } : {}),
       ...(data.languageIds ? { languages: { set: data.languageIds.map((id) => ({ id })) } } : {}),
     },

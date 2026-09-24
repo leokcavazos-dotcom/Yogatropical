@@ -16,6 +16,10 @@ export default function AboutPage() {
           as little of that language as serves you. Everything else — the specific tradition an instructor draws
           from — stays in the background.
         </p>
+        <blockquote className="mt-5 border-l-4 border-gold pl-4 italic text-foreground/80">
+          &ldquo;Grant us the serenity to accept the things we cannot change, the courage to change the things we
+          can, and the wisdom to know the difference.&rdquo;
+        </blockquote>
       </section>
 
       <section className="mt-10">
