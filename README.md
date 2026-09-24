@@ -139,9 +139,9 @@ as commission revenue is still just that — an idea, not implemented. See "Busi
   certifications, safety acknowledgments, class sessions, enrollments, class audits, platform
   settings/price floors)
 - `src/lib/` — business logic: `pricing.ts` (price bands + commission), `classSessionService.ts`
-  (create/request/accept/decline + on-demand, all waiver-gated), `certificationStorage.ts` (local file
-  storage, swap for S3/GCS in production), `recordings.ts`, `video.ts` (Jitsi room helpers), `waiver.ts`
-  (safety waiver text + version), `stripe.ts`, `onboarding.ts`, `auth.ts`
+  (create/request/accept/decline + on-demand, all waiver-gated), `certificationStorage.ts` (Vercel Blob
+  in production, local disk fallback for dev), `recordings.ts`, `video.ts` (Jitsi room helpers),
+  `waiver.ts` (safety waiver text + version), `stripe.ts`, `onboarding.ts`, `auth.ts`
 - `src/app/api/` — REST-ish route handlers backing all of the above
 - `src/app/(pages)` — `/`, `/browse`, `/about`, `/guidelines`, `/login`, `/signup`, `/onboarding`,
   `/dashboard/{client,instructor,admin}`, `/room/[id]`
