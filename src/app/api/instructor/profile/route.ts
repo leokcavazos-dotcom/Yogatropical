@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { ALLOWED_DURATIONS_MINUTES, getPriceBand, validatePriceAgainstBand } from "@/lib/pricing";
 import { hasSignedCurrentWaiver } from "@/lib/onboarding";
+import { isPaymentsConfigured } from "@/lib/stripe";
 
 export async function GET() {
   const session = await auth();
@@ -68,6 +69,12 @@ export async function PATCH(request: Request) {
         { status: 400 },
       );
     }
+    if (isPaymentsConfigured() && !profile?.payoutsEnabled) {
+      return NextResponse.json(
+        { error: "Connect your Stripe account before going available, so you can get paid." },
+        { status: 400 },
+      );
+    }
     if (!(await hasSignedCurrentWaiver(session.user.id))) {
       return NextResponse.json(
         { error: "Please finish onboarding and sign the safety waiver first." },
@@ -96,6 +103,12 @@ export async function PATCH(request: Request) {
     if (!profile?.isCertified) {
       return NextResponse.json(
         { error: "Your certification is still pending review, so you can't offer in-person sessions yet." },
+        { status: 400 },
+      );
+    }
+    if (isPaymentsConfigured() && !profile?.payoutsEnabled) {
+      return NextResponse.json(
+        { error: "Connect your Stripe account before offering in-person sessions, so you can get paid." },
         { status: 400 },
       );
     }

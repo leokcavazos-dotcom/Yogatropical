@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { generateVideoRoomSlug } from "@/lib/video";
-import { getPriceBand, validatePriceAgainstBand, isAllowedDuration } from "@/lib/pricing";
+import { getPriceBand, validatePriceAgainstBand, isAllowedDuration, calculateCommission } from "@/lib/pricing";
 import { hasSignedCurrentWaiver } from "@/lib/onboarding";
+import { isPaymentsConfigured, getStripeClient } from "@/lib/stripe";
 
 const WAIVER_REQUIRED_MESSAGE = "Please finish onboarding and sign the safety waiver first.";
 
@@ -29,6 +30,9 @@ export async function createScheduledClass(input: CreateScheduledClassInput) {
   if (!profile) throw new ClassSessionError("Only instructors can publish classes.");
   if (!profile.isCertified) {
     throw new ClassSessionError("Your certification is still pending review, so you can't publish classes yet.");
+  }
+  if (isPaymentsConfigured() && !profile.payoutsEnabled) {
+    throw new ClassSessionError("Connect your Stripe account before publishing classes, so you can get paid.");
   }
   if (!isAllowedDuration(input.durationMinutes)) {
     throw new ClassSessionError("Class length must be one of 20, 40, 60, 80, 100, or 120 minutes.");
@@ -82,6 +86,9 @@ export async function requestOnDemandSession(instructorUserId: string, clientId:
   const profile = await prisma.instructorProfile.findUnique({ where: { userId: instructorUserId } });
   if (!profile) throw new ClassSessionError("Instructor not found.");
   if (!profile.isCertified) throw new ClassSessionError("This instructor isn't approved to teach yet.");
+  if (isPaymentsConfigured() && !profile.payoutsEnabled) {
+    throw new ClassSessionError("This instructor hasn't finished setting up payouts yet.");
+  }
   if (!profile.isAvailableOnDemand) throw new ClassSessionError("This instructor isn't available on demand right now.");
   if (!profile.onDemandDurationMinutes || !profile.onDemandPricePerStudent) {
     throw new ClassSessionError("This instructor hasn't finished setting up on-demand pricing.");
@@ -115,6 +122,9 @@ export async function requestInPersonSession(
   const profile = await prisma.instructorProfile.findUnique({ where: { userId: instructorUserId } });
   if (!profile) throw new ClassSessionError("Instructor not found.");
   if (!profile.isCertified) throw new ClassSessionError("This instructor isn't approved to teach yet.");
+  if (isPaymentsConfigured() && !profile.payoutsEnabled) {
+    throw new ClassSessionError("This instructor hasn't finished setting up payouts yet.");
+  }
   if (!profile.offersInPerson) throw new ClassSessionError("This instructor doesn't offer in-person sessions.");
   if (!profile.inPersonDurationMinutes || !profile.inPersonPricePerStudent) {
     throw new ClassSessionError("This instructor hasn't finished setting up their in-person pricing yet.");
@@ -162,7 +172,7 @@ export async function requestEnrollment(classSessionId: string, clientId: string
 
   const settings = await prisma.platformSettings.findUnique({ where: { id: "singleton" } });
   const commissionPercent = settings?.commissionPercent ?? 10;
-  const commissionAmount = Math.round(session.pricePerStudent * (commissionPercent / 100) * 100) / 100;
+  const { commissionAmount } = calculateCommission(session.pricePerStudent, commissionPercent);
 
   return prisma.enrollment.upsert({
     where: { classSessionId_clientId: { classSessionId, clientId } },
@@ -176,6 +186,35 @@ export async function requestEnrollment(classSessionId: string, clientId: string
   });
 }
 
+export async function cancelEnrollment(enrollmentId: string, clientId: string) {
+  const enrollment = await prisma.enrollment.findUnique({ where: { id: enrollmentId } });
+  if (!enrollment) throw new ClassSessionError("Booking not found.");
+  if (enrollment.clientId !== clientId) {
+    throw new ClassSessionError("You can only cancel your own bookings.");
+  }
+  if (["DECLINED", "CANCELLED", "COMPLETED", "PAYMENT_FAILED"].includes(enrollment.status)) {
+    throw new ClassSessionError("This booking can't be cancelled anymore.");
+  }
+
+  if (enrollment.status === "ACCEPTED" && enrollment.paidAt && enrollment.stripePaymentIntentId && isPaymentsConfigured()) {
+    const stripe = getStripeClient();
+    await stripe.refunds.create({
+      payment_intent: enrollment.stripePaymentIntentId,
+      reverse_transfer: true,
+      refund_application_fee: true,
+    });
+    return prisma.enrollment.update({
+      where: { id: enrollmentId },
+      data: { status: "CANCELLED", respondedAt: new Date(), refundedAt: new Date() },
+    });
+  }
+
+  return prisma.enrollment.update({
+    where: { id: enrollmentId },
+    data: { status: "CANCELLED", respondedAt: new Date() },
+  });
+}
+
 export async function respondToEnrollment(
   enrollmentId: string,
   instructorId: string,
@@ -183,7 +222,15 @@ export async function respondToEnrollment(
 ) {
   const enrollment = await prisma.enrollment.findUnique({
     where: { id: enrollmentId },
-    include: { classSession: { include: { _count: { select: { enrollments: { where: { status: "ACCEPTED" } } } } } } },
+    include: {
+      client: true,
+      classSession: {
+        include: {
+          _count: { select: { enrollments: { where: { status: "ACCEPTED" } } } },
+          instructor: { include: { instructorProfile: true } },
+        },
+      },
+    },
   });
   if (!enrollment) throw new ClassSessionError("Booking request not found.");
   if (enrollment.classSession.instructorId !== instructorId) {
@@ -201,12 +248,61 @@ export async function respondToEnrollment(
     }
   }
 
+  let paymentIntentId: string | null = null;
+  let finalStatus: "ACCEPTED" | "DECLINED" | "PAYMENT_FAILED" = decision;
+
+  if (decision === "ACCEPTED" && isPaymentsConfigured()) {
+    const stripeAccountId = enrollment.classSession.instructor.instructorProfile?.stripeAccountId;
+    if (!stripeAccountId) {
+      throw new ClassSessionError("You haven't finished connecting your Stripe account yet.");
+    }
+    if (!enrollment.client.stripeCustomerId) {
+      throw new ClassSessionError("This client hasn't added a payment method yet, so this booking can't be charged.");
+    }
+
+    const stripe = getStripeClient();
+    try {
+      const customer = await stripe.customers.retrieve(enrollment.client.stripeCustomerId);
+      const defaultPaymentMethod =
+        !customer.deleted && typeof customer.invoice_settings?.default_payment_method === "string"
+          ? customer.invoice_settings.default_payment_method
+          : null;
+      if (!defaultPaymentMethod) {
+        throw new ClassSessionError("This client hasn't added a payment method yet, so this booking can't be charged.");
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(enrollment.priceCharged * 100),
+        currency: "usd",
+        customer: enrollment.client.stripeCustomerId,
+        payment_method: defaultPaymentMethod,
+        off_session: true,
+        confirm: true,
+        application_fee_amount: Math.round(enrollment.commissionAmount * 100),
+        transfer_data: { destination: stripeAccountId },
+        metadata: { enrollmentId: enrollment.id },
+      });
+      paymentIntentId = paymentIntent.id;
+    } catch (error) {
+      if (error instanceof ClassSessionError) throw error;
+      finalStatus = "PAYMENT_FAILED";
+    }
+  }
+
   const updated = await prisma.enrollment.update({
     where: { id: enrollmentId },
-    data: { status: decision, respondedAt: new Date() },
+    data: {
+      status: finalStatus,
+      respondedAt: new Date(),
+      ...(paymentIntentId ? { stripePaymentIntentId: paymentIntentId, paidAt: new Date() } : {}),
+    },
   });
 
-  if (decision === "ACCEPTED") {
+  if (finalStatus === "PAYMENT_FAILED") {
+    throw new ClassSessionError("The client's card was declined, so this booking wasn't accepted. Ask them to update their payment method.");
+  }
+
+  if (finalStatus === "ACCEPTED") {
     const capacity = enrollment.classSession.capacity;
     const newAcceptedCount = enrollment.classSession._count.enrollments + 1;
     if (capacity !== null && newAcceptedCount >= capacity) {

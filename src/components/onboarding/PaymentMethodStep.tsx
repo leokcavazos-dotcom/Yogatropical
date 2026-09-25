@@ -26,11 +26,21 @@ function CardSetupForm({ clientSecret, onDone }: { clientSecret: string; onDone:
     const result = await stripe.confirmCardSetup(clientSecret, {
       payment_method: { card },
     });
-    setSubmitting(false);
     if (result.error) {
+      setSubmitting(false);
       setError(result.error.message ?? "Couldn't save that card.");
       return;
     }
+    const paymentMethodId =
+      typeof result.setupIntent?.payment_method === "string" ? result.setupIntent.payment_method : null;
+    if (paymentMethodId) {
+      await fetch("/api/payments/confirm-setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentMethodId }),
+      });
+    }
+    setSubmitting(false);
     onDone();
   }
 
@@ -51,21 +61,87 @@ function CardSetupForm({ clientSecret, onDone }: { clientSecret: string; onDone:
   );
 }
 
+interface ConnectStatus {
+  configured: boolean;
+  connected: boolean;
+  payoutsEnabled: boolean;
+}
+
+function InstructorConnectStep({ onSkip }: { onSkip: () => void }) {
+  const [status, setStatus] = useState<ConnectStatus | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/instructor/connect/status")
+      .then((r) => r.json())
+      .then(setStatus);
+  }, []);
+
+  async function connect() {
+    setMessage(null);
+    setLoading(true);
+    const res = await fetch("/api/instructor/connect/onboard", { method: "POST" });
+    const body = await res.json().catch(() => ({}));
+    setLoading(false);
+    if (!res.ok || !body.url) {
+      setMessage(body.error ?? "Couldn't start Stripe setup.");
+      return;
+    }
+    window.location.href = body.url;
+  }
+
+  return (
+    <div>
+      <h2 className="font-serif text-2xl text-palm-dark">Connect your Stripe account</h2>
+      <p className="mt-2 text-sm text-foreground/70">
+        This is how your teaching payouts reach you — Stripe handles a quick verification, then pays you
+        automatically for every class, right after your commission is taken out. Not required to start setting
+        your availability.
+      </p>
+
+      {status === null && <p className="mt-4 text-sm text-foreground/60">Loading…</p>}
+
+      {status?.configured === false && (
+        <p className="mt-4 text-sm text-foreground/70">
+          Payouts aren&apos;t live yet — you can set up your profile and certification right away. We&apos;ll let
+          you know as soon as it&apos;s time to connect Stripe.
+        </p>
+      )}
+
+      {status?.configured && status.payoutsEnabled && (
+        <p className="mt-4 text-sm text-palm-dark">Your Stripe account is connected and ready for payouts.</p>
+      )}
+
+      {status?.configured && !status.payoutsEnabled && (
+        <>
+          {message && <p className="mt-3 text-sm text-red-600">{message}</p>}
+          <button
+            onClick={connect}
+            disabled={loading}
+            className="mt-4 w-full rounded-full bg-palm px-4 py-2 text-sm font-semibold text-white hover:bg-palm-dark disabled:opacity-60"
+          >
+            {loading ? "One moment…" : status.connected ? "Finish connecting Stripe" : "Connect your Stripe account"}
+          </button>
+        </>
+      )}
+
+      <button
+        onClick={onSkip}
+        className="mt-4 w-full rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-foreground/70 hover:bg-stone-50"
+      >
+        Continue
+      </button>
+    </div>
+  );
+}
+
 interface PaymentMethodStepProps {
   role: "CLIENT" | "INSTRUCTOR" | "ADMIN";
-  payoutEmail: string;
-  onPayoutEmailChange: (value: string) => void;
-  onSavePayoutEmail: () => void;
   onSkip: () => void;
 }
 
-export default function PaymentMethodStep({
-  role,
-  payoutEmail,
-  onPayoutEmailChange,
-  onSavePayoutEmail,
-  onSkip,
-}: PaymentMethodStepProps) {
+export default function PaymentMethodStep({ role, onSkip }: PaymentMethodStepProps) {
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -87,28 +163,7 @@ export default function PaymentMethodStep({
   }, [configured, role]);
 
   if (role === "INSTRUCTOR") {
-    return (
-      <div>
-        <h2 className="font-serif text-2xl text-palm-dark">Where should we send your earnings?</h2>
-        <p className="mt-2 text-sm text-foreground/70">
-          This is just where your teaching payouts will land once payments go live — not required to start
-          setting your availability.
-        </p>
-        <input
-          type="email"
-          placeholder="you@example.com"
-          value={payoutEmail}
-          onChange={(e) => onPayoutEmailChange(e.target.value)}
-          className="mt-4 w-full rounded-lg border border-stone-300 px-3 py-2"
-        />
-        <button
-          onClick={onSavePayoutEmail}
-          className="mt-4 w-full rounded-full bg-clay px-4 py-2 text-sm font-semibold text-white hover:bg-clay-dark"
-        >
-          Continue
-        </button>
-      </div>
-    );
+    return <InstructorConnectStep onSkip={onSkip} />;
   }
 
   return (

@@ -33,9 +33,15 @@ interface Profile {
 }
 interface Enrollment {
   id: string;
-  status: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED" | "COMPLETED";
+  status: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED" | "COMPLETED" | "PAYMENT_FAILED";
   priceCharged: number;
+  commissionAmount: number;
   client: { name: string; email: string };
+}
+interface ConnectStatus {
+  configured: boolean;
+  connected: boolean;
+  payoutsEnabled: boolean;
 }
 interface TeachingClass {
   id: string;
@@ -60,6 +66,8 @@ export default function InstructorDashboard() {
   const [allLanguages, setAllLanguages] = useState<Tag[]>([]);
   const [classes, setClasses] = useState<TeachingClass[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [connectStatus, setConnectStatus] = useState<ConnectStatus | null>(null);
+  const [connectLoading, setConnectLoading] = useState(false);
 
   const [bio, setBio] = useState("");
   const [specialtyIds, setSpecialtyIds] = useState<string[]>([]);
@@ -113,12 +121,30 @@ export default function InstructorDashboard() {
     fetch("/api/me/teaching").then((r) => r.json()).then(setClasses);
   }, []);
 
+  const loadConnectStatus = useCallback(() => {
+    fetch("/api/instructor/connect/status").then((r) => r.json()).then(setConnectStatus);
+  }, []);
+
   useEffect(() => {
     fetch("/api/specialties").then((r) => r.json()).then(setAllSpecialties);
     fetch("/api/languages").then((r) => r.json()).then(setAllLanguages);
     loadProfile();
     loadClasses();
-  }, [loadProfile, loadClasses]);
+    loadConnectStatus();
+  }, [loadProfile, loadClasses, loadConnectStatus]);
+
+  async function connectStripe() {
+    setMessage(null);
+    setConnectLoading(true);
+    const res = await fetch("/api/instructor/connect/onboard", { method: "POST" });
+    const body = await res.json().catch(() => ({}));
+    setConnectLoading(false);
+    if (!res.ok || !body.url) {
+      setMessage(body.error ?? "Couldn't start Stripe setup.");
+      return;
+    }
+    window.location.href = body.url;
+  }
 
   function toggleFrom(list: string[], id: string, setter: (v: string[]) => void) {
     setter(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
@@ -259,6 +285,31 @@ export default function InstructorDashboard() {
           Your certification is still pending review. You can set up your profile now, but you won&apos;t be
           able to publish classes or go available on demand until an admin approves a certificate.
         </div>
+      )}
+
+      {connectStatus?.configured && (
+        <section className="rounded-2xl border border-stone-200 p-5">
+          <h2 className="font-serif text-xl text-clay-dark">Payouts</h2>
+          {connectStatus.payoutsEnabled ? (
+            <p className="mt-2 text-sm text-palm-dark">
+              Your Stripe account is connected — you&apos;ll be paid automatically as soon as a booking is
+              accepted.
+            </p>
+          ) : (
+            <>
+              <p className="mt-2 text-sm text-foreground/70">
+                Connect a Stripe account so you can publish classes and get paid automatically for every booking.
+              </p>
+              <button
+                onClick={connectStripe}
+                disabled={connectLoading}
+                className="mt-3 rounded-full bg-palm px-5 py-2 text-sm font-semibold text-white hover:bg-palm-dark disabled:opacity-60"
+              >
+                {connectLoading ? "One moment…" : connectStatus.connected ? "Finish connecting Stripe" : "Connect your Stripe account"}
+              </button>
+            </>
+          )}
+        </section>
       )}
 
       <section className="rounded-2xl border border-stone-200 p-5">
@@ -504,7 +555,7 @@ export default function InstructorDashboard() {
                 {c.enrollments.map((e) => (
                   <li key={e.id} className="flex items-center justify-between rounded-lg bg-stone-50 px-3 py-2 text-sm">
                     <span>
-                      {e.client.name} · ${e.priceCharged.toFixed(2)}
+                      {e.client.name} · ${(e.priceCharged - e.commissionAmount).toFixed(2)} you earn
                     </span>
                     {e.status === "PENDING" ? (
                       <span className="flex gap-2">
