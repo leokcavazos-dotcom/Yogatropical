@@ -19,7 +19,6 @@ interface OnboardingStatus {
   onboardingCompletedAt: string | null;
   instructorProfile: {
     bio: string;
-    payoutEmail: string | null;
     specialties: Tag[];
     languages: Tag[];
   } | null;
@@ -38,7 +37,6 @@ export default function OnboardingPage() {
   const [bio, setBio] = useState("");
   const [specialtyIds, setSpecialtyIds] = useState<string[]>([]);
   const [languageIds, setLanguageIds] = useState<string[]>([]);
-  const [payoutEmail, setPayoutEmail] = useState("");
   const [allSpecialties, setAllSpecialties] = useState<Tag[]>([]);
   const [allLanguages, setAllLanguages] = useState<Tag[]>([]);
 
@@ -54,7 +52,6 @@ export default function OnboardingPage() {
         setPreferredLanguageId(s.preferredLanguageId ?? "");
         if (s.instructorProfile) {
           setBio(s.instructorProfile.bio);
-          setPayoutEmail(s.instructorProfile.payoutEmail ?? "");
           setSpecialtyIds(s.instructorProfile.specialties.map((t) => t.id));
           setLanguageIds(s.instructorProfile.languages.map((t) => t.id));
         }
@@ -111,15 +108,6 @@ export default function OnboardingPage() {
       return;
     }
     goTo(3);
-  }
-
-  async function savePayoutEmail() {
-    await fetch("/api/instructor/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ payoutEmail: payoutEmail || null }),
-    });
-    goTo(4);
   }
 
   async function finish() {
@@ -271,15 +259,7 @@ export default function OnboardingPage() {
         </div>
       )}
 
-      {step === 3 && (
-        <PaymentMethodStep
-          role={status.role}
-          payoutEmail={payoutEmail}
-          onPayoutEmailChange={setPayoutEmail}
-          onSavePayoutEmail={savePayoutEmail}
-          onSkip={() => goTo(4)}
-        />
-      )}
+      {step === 3 && <PaymentMethodStep role={status.role} onSkip={() => goTo(4)} />}
 
       {step === 4 && (
         <div className="space-y-5 text-center">

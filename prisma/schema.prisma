@@ -37,6 +37,7 @@ enum EnrollmentStatus {
   DECLINED
   CANCELLED
   COMPLETED
+  PAYMENT_FAILED
 }
 
 enum CertificationStatus {
@@ -101,6 +102,8 @@ model InstructorProfile {
   inPersonDurationMinutes Int?
   inPersonCapacity        Int?
   inPersonPricePerStudent Float?
+  stripeAccountId         String?      @unique
+  payoutsEnabled          Boolean      @default(false)
   specialties             Specialty[]  @relation("InstructorSpecialties")
   languages               Language[]   @relation("InstructorLanguages")
   certifications          Certification[]
@@ -191,6 +194,9 @@ model Enrollment {
   commissionAmount Float
   requestedAt     DateTime          @default(now())
   respondedAt     DateTime?
+  stripePaymentIntentId String?
+  paidAt                DateTime?
+  refundedAt            DateTime?
 
   @@unique([classSessionId, clientId])
 }

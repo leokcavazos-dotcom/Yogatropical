@@ -81,19 +81,25 @@ Anyone who hasn't signed the current waiver sees a small "Finish onboarding" ban
 
 ## Payments
 
-Pricing and commission math is fully implemented — `Enrollment.priceCharged` and `commissionAmount` are
-computed and stored on every request — but no money moves until Stripe is actually configured.
+Real money moves via Stripe Connect, gated behind `STRIPE_SECRET_KEY` /
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` / `STRIPE_WEBHOOK_SECRET` — until all three are set, publishing
+classes, going available, and payment collection all stay in a friendly "coming soon" state, same as before.
 
-The onboarding payment step is real, working Stripe integration (a `SetupIntent` + Stripe Elements
-`CardElement`, so raw card numbers never touch our server) that simply stays inactive — showing a friendly
-"coming soon" message instead — until `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` are set.
-Once they are, clients get a real "add a payment method" step and `src/app/api/payments/setup-intent/route.ts`
-creates a Stripe customer + SetupIntent per user (`User.stripeCustomerId`). Instructors instead set a
-`payoutEmail` (just a payout destination, no card/bank data collected there).
-
-What's still missing for money to actually move: charging the client's saved payment method and splitting
-`commissionAmount` to the platform vs. the rest to the instructor at the point an enrollment is accepted —
-Stripe Connect is a natural fit for that split. That part isn't built yet.
+- **Clients** save a card during onboarding (`SetupIntent` + Stripe Elements `CardElement`, so raw card
+  numbers never touch our server) via `src/app/api/payments/setup-intent/route.ts`, and it's set as their
+  Stripe customer's default payment method via `src/app/api/payments/confirm-setup/route.ts`.
+- **Instructors** connect a Stripe Express account (`src/app/api/instructor/connect/onboard/route.ts` mints
+  a Stripe-hosted onboarding link; `.../connect/status/route.ts` checks whether payouts are enabled) instead
+  of entering a payout email. Publishing a class or going available on-demand/in-person is blocked until
+  `InstructorProfile.payoutsEnabled` is true.
+- **Charging happens at acceptance**: when an instructor accepts a booking (`respondToEnrollment` in
+  `src/lib/classSessionService.ts`), a destination PaymentIntent charges the client and automatically splits
+  the money — `commissionAmount` stays with the platform, the rest transfers straight to the instructor's
+  connected account. A declined card marks the enrollment `PAYMENT_FAILED` instead of `ACCEPTED`.
+- **Cancelling** an already-paid, accepted booking (`cancelEnrollment`) issues a Stripe refund that reverses
+  both the transfer and the platform's commission.
+- **`src/app/api/stripe/webhook/route.ts`** is a reconciliation safety net for Connect account status changes
+  and payment/refund events, in case the synchronous path above is ever interrupted.
 
 ## Business model & governance (in progress)
 

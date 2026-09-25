@@ -15,3 +15,10 @@ export function getStripeClient(): Stripe {
   }
   return stripeClient;
 }
+
+export function verifyWebhookSignature(rawBody: string, signature: string): Stripe.Event {
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    throw new Error("Stripe webhooks aren't configured (STRIPE_WEBHOOK_SECRET is unset).");
+  }
+  return getStripeClient().webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET);
+}
