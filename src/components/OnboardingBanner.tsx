@@ -10,9 +10,9 @@ export default async function OnboardingBanner() {
   if (signed) return null;
 
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-clay-dark">
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sunset/40 bg-sunset/10 px-4 py-3 text-sm text-flamingo">
       <span>Finish setting up your account — it only takes a couple of minutes.</span>
-      <Link href="/onboarding" className="rounded-full bg-gold px-4 py-1.5 font-semibold text-white hover:opacity-90">
+      <Link href="/onboarding" className="rounded-full bg-sunset px-4 py-1.5 font-semibold text-ink hover:opacity-90">
         Finish onboarding
       </Link>
     </div>

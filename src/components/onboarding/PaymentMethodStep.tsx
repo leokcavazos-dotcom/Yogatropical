@@ -46,14 +46,14 @@ function CardSetupForm({ clientSecret, onDone }: { clientSecret: string; onDone:
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="rounded-lg border border-stone-300 px-3 py-3">
+      <div className="rounded-lg border border-line px-3 py-3">
         <CardElement />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
       <button
         type="submit"
         disabled={!stripe || submitting}
-        className="w-full rounded-full bg-clay px-4 py-2 text-sm font-semibold text-white hover:bg-clay-dark disabled:opacity-60"
+        className="w-full rounded-full bg-flamingo px-4 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright disabled:opacity-60"
       >
         {submitting ? "Saving…" : "Save payment method"}
       </button>
@@ -93,7 +93,7 @@ function InstructorConnectStep({ onSkip }: { onSkip: () => void }) {
 
   return (
     <div>
-      <h2 className="font-serif text-2xl text-palm-dark">Connect your Stripe account</h2>
+      <h2 className="font-display text-2xl text-mint">Connect your Stripe account</h2>
       <p className="mt-2 text-sm text-foreground/70">
         This is how your teaching payouts reach you — Stripe handles a quick verification, then pays you
         automatically for every class, right after your commission is taken out. Not required to start setting
@@ -110,16 +110,16 @@ function InstructorConnectStep({ onSkip }: { onSkip: () => void }) {
       )}
 
       {status?.configured && status.payoutsEnabled && (
-        <p className="mt-4 text-sm text-palm-dark">Your Stripe account is connected and ready for payouts.</p>
+        <p className="mt-4 text-sm text-mint">Your Stripe account is connected and ready for payouts.</p>
       )}
 
       {status?.configured && !status.payoutsEnabled && (
         <>
-          {message && <p className="mt-3 text-sm text-red-600">{message}</p>}
+          {message && <p className="mt-3 text-sm text-red-400">{message}</p>}
           <button
             onClick={connect}
             disabled={loading}
-            className="mt-4 w-full rounded-full bg-palm px-4 py-2 text-sm font-semibold text-white hover:bg-palm-dark disabled:opacity-60"
+            className="mt-4 w-full rounded-full bg-mint px-4 py-2 text-sm font-semibold text-ink hover:bg-mint-bright disabled:opacity-60"
           >
             {loading ? "One moment…" : status.connected ? "Finish connecting Stripe" : "Connect your Stripe account"}
           </button>
@@ -128,7 +128,7 @@ function InstructorConnectStep({ onSkip }: { onSkip: () => void }) {
 
       <button
         onClick={onSkip}
-        className="mt-4 w-full rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-foreground/70 hover:bg-stone-50"
+        className="mt-4 w-full rounded-full border border-line px-4 py-2 text-sm font-semibold text-foreground/70 hover:bg-surface-2"
       >
         Continue
       </button>
@@ -168,7 +168,7 @@ export default function PaymentMethodStep({ role, onSkip }: PaymentMethodStepPro
 
   return (
     <div>
-      <h2 className="font-serif text-2xl text-palm-dark">Add a payment method</h2>
+      <h2 className="font-display text-2xl text-mint">Add a payment method</h2>
       {configured === null && <p className="mt-3 text-sm text-foreground/60">Loading…</p>}
 
       {configured === false && (
@@ -177,7 +177,7 @@ export default function PaymentMethodStep({ role, onSkip }: PaymentMethodStepPro
             Payment collection isn&apos;t live yet — you can browse and request classes right away. We&apos;ll
             let you know as soon as it&apos;s time to add a card.
           </p>
-          <button onClick={onSkip} className="mt-4 w-full rounded-full bg-clay px-4 py-2 text-sm font-semibold text-white hover:bg-clay-dark">
+          <button onClick={onSkip} className="mt-4 w-full rounded-full bg-flamingo px-4 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright">
             Continue
           </button>
         </>
@@ -185,8 +185,8 @@ export default function PaymentMethodStep({ role, onSkip }: PaymentMethodStepPro
 
       {configured && saved && (
         <>
-          <p className="mt-3 text-sm text-palm-dark">Payment method saved. You&apos;re all set.</p>
-          <button onClick={onSkip} className="mt-4 w-full rounded-full bg-clay px-4 py-2 text-sm font-semibold text-white hover:bg-clay-dark">
+          <p className="mt-3 text-sm text-mint">Payment method saved. You&apos;re all set.</p>
+          <button onClick={onSkip} className="mt-4 w-full rounded-full bg-flamingo px-4 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright">
             Continue
           </button>
         </>
