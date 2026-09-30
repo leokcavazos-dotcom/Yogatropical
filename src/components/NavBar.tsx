@@ -26,6 +26,9 @@ export default async function NavBar() {
           <Link href="/about" className="hover:text-flamingo">
             Our mission
           </Link>
+          <Link href="/recovery" className="hover:text-flamingo">
+            Meetings
+          </Link>
           <Link href="/guidelines" className="hover:text-flamingo">
             Guidelines
           </Link>
