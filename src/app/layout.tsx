@@ -23,7 +23,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <NavBar />
         <div className="flex-1">{children}</div>
         <footer className="border-t border-line px-4 py-8 text-center text-sm text-foreground/60">
-          <p>Yoga Tropical is a movement, breath, and meditation community rooted in recovery — open to any higher power, or none at all.</p>
+          <p>
+            Yoga Tropical is a movement, breath, and meditation community rooted in recovery — open to any higher power, or none at all.{" "}
+            <a href="/recovery" className="underline hover:text-flamingo">
+              Find a recovery meeting
+            </a>
+            .
+          </p>
           <p className="mt-1">
             Currently an LLC, with a working goal of transitioning into an instructor cooperative.{" "}
             <a href="/about#governance" className="underline hover:text-flamingo">
