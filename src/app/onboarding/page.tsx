@@ -126,12 +126,12 @@ export default function OnboardingPage() {
     <main className="mx-auto max-w-xl px-4 py-10">
       <div className="mb-6 flex items-center justify-center gap-2">
         {STEP_LABELS.map((label, i) => (
-          <div key={label} className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-clay" : "bg-stone-200"}`} />
+          <div key={label} className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-flamingo" : "bg-line"}`} />
         ))}
       </div>
       <p className="mb-4 text-center text-xs uppercase tracking-wide text-foreground/50">{STEP_LABELS[step]}</p>
 
-      {message && <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{message}</p>}
+      {message && <p className="mb-4 rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-300">{message}</p>}
 
       {step === 0 && (
         <div className="space-y-5 text-center">
@@ -147,7 +147,7 @@ export default function OnboardingPage() {
           <p className="text-sm text-foreground/70">
             This will only take a couple of minutes — a quick profile, a short safety note, and you&apos;re in.
           </p>
-          <button onClick={() => goTo(1)} className="w-full rounded-full bg-clay px-4 py-2.5 font-semibold text-white hover:bg-clay-dark">
+          <button onClick={() => goTo(1)} className="w-full rounded-full bg-flamingo px-4 py-2.5 font-semibold text-ink hover:bg-flamingo-bright">
             Let&apos;s go
           </button>
         </div>
@@ -155,7 +155,7 @@ export default function OnboardingPage() {
 
       {step === 1 && (
         <div className="space-y-4">
-          <h2 className="font-serif text-2xl text-palm-dark">
+          <h2 className="font-display text-2xl text-mint">
             {isInstructor ? "Tell us about your teaching" : "A couple of quick details"}
           </h2>
 
@@ -167,7 +167,7 @@ export default function OnboardingPage() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={3}
-                  className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+                  className="mt-1 w-full rounded-lg border border-line px-3 py-2"
                 />
               </div>
               <div>
@@ -177,7 +177,7 @@ export default function OnboardingPage() {
                     <button
                       key={s.id}
                       onClick={() => toggle(specialtyIds, s.id, setSpecialtyIds)}
-                      className={`rounded-full border px-3 py-1 text-sm ${specialtyIds.includes(s.id) ? "border-clay bg-clay text-white" : "border-stone-300 text-foreground/70"}`}
+                      className={`rounded-full border px-3 py-1 text-sm ${specialtyIds.includes(s.id) ? "border-flamingo bg-flamingo text-ink" : "border-line text-foreground/70"}`}
                     >
                       {s.name}
                     </button>
@@ -191,7 +191,7 @@ export default function OnboardingPage() {
                     <button
                       key={l.id}
                       onClick={() => toggle(languageIds, l.id, setLanguageIds)}
-                      className={`rounded-full border px-3 py-1 text-sm ${languageIds.includes(l.id) ? "border-palm bg-palm text-white" : "border-stone-300 text-foreground/70"}`}
+                      className={`rounded-full border px-3 py-1 text-sm ${languageIds.includes(l.id) ? "border-mint bg-mint text-ink" : "border-line text-foreground/70"}`}
                     >
                       {l.name}
                     </button>
@@ -207,7 +207,7 @@ export default function OnboardingPage() {
               <select
                 value={preferredLanguageId}
                 onChange={(e) => setPreferredLanguageId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+                className="mt-1 w-full rounded-lg border border-line px-3 py-2"
               >
                 <option value="">No preference</option>
                 {allLanguages.map((l) => (
@@ -225,11 +225,11 @@ export default function OnboardingPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="For class reminders — never shared"
-              className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-line px-3 py-2"
             />
           </div>
 
-          <button onClick={saveProfileStep} className="w-full rounded-full bg-clay px-4 py-2.5 font-semibold text-white hover:bg-clay-dark">
+          <button onClick={saveProfileStep} className="w-full rounded-full bg-flamingo px-4 py-2.5 font-semibold text-ink hover:bg-flamingo-bright">
             Continue
           </button>
         </div>
@@ -237,8 +237,8 @@ export default function OnboardingPage() {
 
       {step === 2 && (
         <div className="space-y-4">
-          <h2 className="font-serif text-2xl text-palm-dark">A quick safety note</h2>
-          <div className="max-h-56 overflow-y-auto whitespace-pre-line rounded-xl border border-stone-200 bg-sand/40 p-4 text-sm text-foreground/80">
+          <h2 className="font-display text-2xl text-mint">A quick safety note</h2>
+          <div className="max-h-56 overflow-y-auto whitespace-pre-line rounded-xl border border-line bg-surface-2 p-4 text-sm text-foreground/80">
             {WAIVER_TEXT}
           </div>
           <div>
@@ -246,14 +246,14 @@ export default function OnboardingPage() {
             <input
               value={signedName}
               onChange={(e) => setSignedName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-line px-3 py-2"
             />
           </div>
           <label className="flex items-start gap-2 text-sm text-foreground/80">
             <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1" />
             <span>I&apos;ve read this and understand it applies to every class I take or teach here.</span>
           </label>
-          <button onClick={signWaiver} className="w-full rounded-full bg-clay px-4 py-2.5 font-semibold text-white hover:bg-clay-dark">
+          <button onClick={signWaiver} className="w-full rounded-full bg-flamingo px-4 py-2.5 font-semibold text-ink hover:bg-flamingo-bright">
             Sign and continue
           </button>
         </div>
@@ -263,13 +263,13 @@ export default function OnboardingPage() {
 
       {step === 4 && (
         <div className="space-y-5 text-center">
-          <h2 className="font-serif text-2xl text-palm-dark">You&apos;re all set, {status.name.split(" ")[0]}</h2>
+          <h2 className="font-display text-2xl text-mint">You&apos;re all set, {status.name.split(" ")[0]}</h2>
           <p className="text-sm text-foreground/70">
             {isInstructor
               ? "Head to your dashboard to upload a certificate and publish your first class."
               : "Head over to browse classes and find something that fits your day."}
           </p>
-          <button onClick={finish} className="w-full rounded-full bg-clay px-4 py-2.5 font-semibold text-white hover:bg-clay-dark">
+          <button onClick={finish} className="w-full rounded-full bg-flamingo px-4 py-2.5 font-semibold text-ink hover:bg-flamingo-bright">
             {isInstructor ? "Go to my dashboard" : "Browse classes"}
           </button>
         </div>

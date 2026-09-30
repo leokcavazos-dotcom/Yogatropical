@@ -162,14 +162,14 @@ export default function BrowsePage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="font-serif text-3xl text-palm-dark">Browse classes</h1>
+      <h1 className="font-display text-3xl text-mint">Browse classes</h1>
 
       {onDemand.length > 0 && (
-        <section className="mt-8 rounded-2xl border border-gold/40 bg-gold/10 p-5">
-          <h2 className="font-serif text-xl text-clay-dark">Available now</h2>
+        <section className="mt-8 rounded-2xl border border-sunset/40 bg-sunset/10 p-5">
+          <h2 className="font-display text-xl text-flamingo">Available now</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {onDemand.map((inst) => (
-              <div key={inst.id} className="rounded-xl bg-white p-4 shadow-sm">
+              <div key={inst.id} className="rounded-xl bg-surface p-4 shadow-sm">
                 <p className="font-semibold text-foreground">{inst.user.name}</p>
                 <p className="text-xs text-foreground/60">
                   {inst.specialties.map((s) => s.name).join(", ") || "General practice"} ·{" "}
@@ -181,7 +181,7 @@ export default function BrowsePage() {
                 </p>
                 <button
                   onClick={() => requestOnDemand(inst.user.id)}
-                  className="mt-3 rounded-full bg-gold px-4 py-1.5 text-sm font-semibold text-white hover:opacity-90"
+                  className="mt-3 rounded-full bg-sunset px-4 py-1.5 text-sm font-semibold text-ink hover:opacity-90"
                 >
                   Request now
                 </button>
@@ -192,8 +192,8 @@ export default function BrowsePage() {
       )}
 
       {inPerson.length > 0 && (
-        <section className="mt-8 rounded-2xl border border-palm/30 bg-palm/5 p-5">
-          <h2 className="font-serif text-xl text-palm-dark">Book someone to come to you</h2>
+        <section className="mt-8 rounded-2xl border border-mint/30 bg-mint/5 p-5">
+          <h2 className="font-display text-xl text-mint">Book someone to come to you</h2>
           <p className="mt-1 text-sm text-foreground/70">
             At your home, office, or organization — pick a date, time, and address.
           </p>
@@ -201,7 +201,7 @@ export default function BrowsePage() {
             {inPerson.map((inst) => {
               const form = inPersonForms[inst.user.id] ?? { date: "", time: "", address: "" };
               return (
-                <div key={inst.id} className="rounded-xl bg-white p-4 shadow-sm">
+                <div key={inst.id} className="rounded-xl bg-surface p-4 shadow-sm">
                   <p className="font-semibold text-foreground">{inst.user.name}</p>
                   <p className="text-xs text-foreground/60">
                     {inst.specialties.map((s) => s.name).join(", ") || "General practice"} ·{" "}
@@ -220,25 +220,25 @@ export default function BrowsePage() {
                         type="date"
                         value={form.date}
                         onChange={(e) => updateInPersonForm(inst.user.id, "date", e.target.value)}
-                        className="w-1/2 rounded-lg border border-stone-300 px-2 py-1 text-sm"
+                        className="w-1/2 rounded-lg border border-line px-2 py-1 text-sm"
                       />
                       <input
                         type="time"
                         value={form.time}
                         onChange={(e) => updateInPersonForm(inst.user.id, "time", e.target.value)}
-                        className="w-1/2 rounded-lg border border-stone-300 px-2 py-1 text-sm"
+                        className="w-1/2 rounded-lg border border-line px-2 py-1 text-sm"
                       />
                     </div>
                     <input
                       placeholder="Address (home, office, organization)"
                       value={form.address}
                       onChange={(e) => updateInPersonForm(inst.user.id, "address", e.target.value)}
-                      className="w-full rounded-lg border border-stone-300 px-2 py-1 text-sm"
+                      className="w-full rounded-lg border border-line px-2 py-1 text-sm"
                     />
                   </div>
                   <button
                     onClick={() => requestInPerson(inst.user.id)}
-                    className="mt-3 rounded-full bg-palm px-4 py-1.5 text-sm font-semibold text-white hover:bg-palm-dark"
+                    className="mt-3 rounded-full bg-mint px-4 py-1.5 text-sm font-semibold text-ink hover:bg-mint-bright"
                   >
                     Request in-person session
                   </button>
@@ -249,14 +249,14 @@ export default function BrowsePage() {
         </section>
       )}
 
-      <section className="mt-8 flex flex-wrap gap-3 rounded-2xl bg-sand/60 p-4">
+      <section className="mt-8 flex flex-wrap gap-3 rounded-2xl bg-surface p-4">
         <div>
           <label className="block text-xs font-medium text-foreground/70">Date</label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5"
+            className="mt-1 rounded-lg border border-line px-3 py-1.5"
           />
         </div>
         <div>
@@ -264,7 +264,7 @@ export default function BrowsePage() {
           <select
             value={duration}
             onChange={(e) => setDuration(e.target.value ? Number(e.target.value) : "")}
-            className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5"
+            className="mt-1 rounded-lg border border-line px-3 py-1.5"
           >
             <option value="">Any length</option>
             {DURATIONS.map((d) => (
@@ -279,7 +279,7 @@ export default function BrowsePage() {
           <select
             value={specialtyId}
             onChange={(e) => setSpecialtyId(e.target.value)}
-            className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5"
+            className="mt-1 rounded-lg border border-line px-3 py-1.5"
           >
             <option value="">Any specialty</option>
             {specialties.map((s) => (
@@ -294,7 +294,7 @@ export default function BrowsePage() {
           <select
             value={languageId}
             onChange={(e) => setLanguageId(e.target.value)}
-            className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5"
+            className="mt-1 rounded-lg border border-line px-3 py-1.5"
           >
             <option value="">Any language</option>
             {languages.map((l) => (
@@ -309,7 +309,7 @@ export default function BrowsePage() {
           <select
             value={deliveryMethod}
             onChange={(e) => setDeliveryMethod(e.target.value)}
-            className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5"
+            className="mt-1 rounded-lg border border-line px-3 py-1.5"
           >
             <option value="">Any delivery</option>
             <option value="VIRTUAL">Virtual</option>
@@ -318,7 +318,7 @@ export default function BrowsePage() {
         </div>
       </section>
 
-      {message && <p className="mt-4 rounded-lg bg-palm/10 px-4 py-2 text-sm text-palm-dark">{message}</p>}
+      {message && <p className="mt-4 rounded-lg bg-mint/10 px-4 py-2 text-sm text-mint">{message}</p>}
 
       <AdSlot
         imageUrl={process.env.NEXT_PUBLIC_AD_SLOT_BROWSE_IMAGE_URL}
@@ -333,10 +333,10 @@ export default function BrowsePage() {
         {classes.map((c) => {
           const seatsLeft = c.capacity != null ? c.capacity - c._count.enrollments : null;
           return (
-            <div key={c.id} className="rounded-2xl border border-stone-200 p-5 shadow-sm">
+            <div key={c.id} className="rounded-2xl border border-line p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-serif text-lg text-foreground">{c.title}</h3>
+                  <h3 className="font-display text-lg text-foreground">{c.title}</h3>
                   <p className="text-sm text-foreground/60">
                     with {c.instructor.name} · {new Date(c.startTime).toLocaleString()} · {c.durationMinutes} min
                   </p>
@@ -350,13 +350,13 @@ export default function BrowsePage() {
                   {c.description && <p className="mt-2 text-sm text-foreground/80">{c.description}</p>}
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-clay-dark">${c.pricePerStudent.toFixed(2)}/student</p>
+                  <p className="font-semibold text-flamingo">${c.pricePerStudent.toFixed(2)}/student</p>
                   <p className="text-xs text-foreground/60">
                     {seatsLeft != null ? `${seatsLeft} seat${seatsLeft === 1 ? "" : "s"} left` : "Open capacity"}
                   </p>
                   <button
                     onClick={() => requestToJoin(c.id)}
-                    className="mt-2 rounded-full bg-clay px-4 py-1.5 text-sm font-semibold text-white hover:bg-clay-dark"
+                    className="mt-2 rounded-full bg-flamingo px-4 py-1.5 text-sm font-semibold text-ink hover:bg-flamingo-bright"
                   >
                     Request to join
                   </button>
@@ -369,7 +369,7 @@ export default function BrowsePage() {
 
       <p className="mt-10 text-center text-sm text-foreground/60">
         Not seeing a login prompt for booking?{" "}
-        <Link href="/login" className="underline hover:text-clay">
+        <Link href="/login" className="underline hover:text-flamingo">
           Sign in
         </Link>{" "}
         first as a client.

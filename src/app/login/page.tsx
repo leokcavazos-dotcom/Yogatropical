@@ -28,7 +28,7 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-16">
-      <h1 className="font-serif text-3xl text-palm-dark">Welcome back</h1>
+      <h1 className="font-display text-3xl text-mint">Welcome back</h1>
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
           <label className="block text-sm font-medium text-foreground/80">Email</label>
@@ -37,7 +37,7 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-clay focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-line px-3 py-2 focus:border-flamingo focus:outline-none"
           />
         </div>
         <div>
@@ -47,21 +47,21 @@ export default function LoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-clay focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-line px-3 py-2 focus:border-flamingo focus:outline-none"
           />
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-clay px-4 py-2 font-semibold text-white hover:bg-clay-dark disabled:opacity-60"
+          className="w-full rounded-full bg-flamingo px-4 py-2 font-semibold text-ink hover:bg-flamingo-bright disabled:opacity-60"
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
       <p className="mt-6 text-sm text-foreground/70">
         New here?{" "}
-        <Link href="/signup" className="underline hover:text-clay">
+        <Link href="/signup" className="underline hover:text-flamingo">
           Create an account
         </Link>
       </p>

@@ -45,20 +45,20 @@ function SignupForm() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-16">
-      <h1 className="font-serif text-3xl text-palm-dark">Join Yoga Tropical</h1>
+      <h1 className="font-display text-3xl text-mint">Join Yoga Tropical</h1>
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setRole("CLIENT")}
-            className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold ${role === "CLIENT" ? "border-clay bg-clay text-white" : "border-stone-300 text-foreground/70"}`}
+            className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold ${role === "CLIENT" ? "border-flamingo bg-flamingo text-ink" : "border-line text-foreground/70"}`}
           >
             I want to take classes
           </button>
           <button
             type="button"
             onClick={() => setRole("INSTRUCTOR")}
-            className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold ${role === "INSTRUCTOR" ? "border-palm bg-palm text-white" : "border-stone-300 text-foreground/70"}`}
+            className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold ${role === "INSTRUCTOR" ? "border-mint bg-mint text-ink" : "border-line text-foreground/70"}`}
           >
             I want to teach
           </button>
@@ -69,7 +69,7 @@ function SignupForm() {
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-clay focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-line px-3 py-2 focus:border-flamingo focus:outline-none"
           />
         </div>
         <div>
@@ -79,7 +79,7 @@ function SignupForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-clay focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-line px-3 py-2 focus:border-flamingo focus:outline-none"
           />
         </div>
         <div>
@@ -90,7 +90,7 @@ function SignupForm() {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-clay focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-line px-3 py-2 focus:border-flamingo focus:outline-none"
           />
         </div>
         <label className="flex items-start gap-2 text-sm text-foreground/80">
@@ -102,24 +102,24 @@ function SignupForm() {
           />
           <span>
             I&apos;ve read and agree to the{" "}
-            <Link href="/guidelines" target="_blank" className="underline hover:text-clay">
+            <Link href="/guidelines" target="_blank" className="underline hover:text-flamingo">
               Code of Conduct
             </Link>{" "}
             (including on-camera dress guidelines and recording policy).
           </span>
         </label>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-clay px-4 py-2 font-semibold text-white hover:bg-clay-dark disabled:opacity-60"
+          className="w-full rounded-full bg-flamingo px-4 py-2 font-semibold text-ink hover:bg-flamingo-bright disabled:opacity-60"
         >
           {loading ? "Creating account…" : "Create account"}
         </button>
       </form>
       <p className="mt-6 text-sm text-foreground/70">
         Already have an account?{" "}
-        <Link href="/login" className="underline hover:text-clay">
+        <Link href="/login" className="underline hover:text-flamingo">
           Sign in
         </Link>
       </p>

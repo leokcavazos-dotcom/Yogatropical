@@ -1,7 +1,7 @@
 export default function AboutPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="font-serif text-4xl text-palm-dark">Our mission</h1>
+      <h1 className="font-display text-4xl text-mint">Our mission</h1>
       <p className="mt-4 text-lg leading-relaxed text-foreground/90">
         Yoga Tropical is a home for movement, breath, and stillness practices for people building a life in
         recovery. We believe a body that moves and a mind that breathes on purpose are part of walking a
@@ -9,21 +9,21 @@ export default function AboutPage() {
       </p>
 
       <section className="mt-10">
-        <h2 className="font-serif text-2xl text-clay-dark">A secular space, open to any higher power</h2>
+        <h2 className="font-display text-2xl text-flamingo">A secular space, open to any higher power</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
           We are not affiliated with any religion. At the same time, we don&apos;t shy away from the language
           many people in recovery already use — a higher power, the serenity prayer, the steps. Use as much or
           as little of that language as serves you. Everything else — the specific tradition an instructor draws
           from — stays in the background.
         </p>
-        <blockquote className="mt-5 border-l-4 border-gold pl-4 italic text-foreground/80">
+        <blockquote className="mt-5 border-l-4 border-sunset pl-4 italic text-foreground/80">
           &ldquo;Grant us the serenity to accept the things we cannot change, the courage to change the things we
           can, and the wisdom to know the difference.&rdquo;
         </blockquote>
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-2xl text-clay-dark">Why every class is described as &ldquo;inspired&rdquo;</h2>
+        <h2 className="font-display text-2xl text-flamingo">Why every class is described as &ldquo;inspired&rdquo;</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
           You&apos;ll see classes described as Ashtanga-inspired, Hatha-inspired, Kundalini-inspired, Tai
           Chi-inspired, and so on — never simply &ldquo;Ashtanga&rdquo; or &ldquo;Kundalini.&rdquo; That&apos;s
@@ -33,7 +33,7 @@ export default function AboutPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-2xl text-clay-dark">Pan-American, in whatever language you practice</h2>
+        <h2 className="font-display text-2xl text-flamingo">Pan-American, in whatever language you practice</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
           Our instructors teach in English, Spanish, Portuguese, French, Haitian Creole, Quechua, and more —
           whatever language they speak and a student wants to practice in, including hybrid, bilingual classes.
@@ -41,12 +41,12 @@ export default function AboutPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-2xl text-clay-dark">Certification and quality</h2>
+        <h2 className="font-display text-2xl text-flamingo">Certification and quality</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
           Every instructor submits certification documents that our team reviews before they can publish or
           teach a class. Classes are recorded for quality review and kept on file for a limited retention
           period (currently 7 days, longer if a class is flagged for follow-up). See our{" "}
-          <a href="/guidelines" className="underline hover:text-clay">
+          <a href="/guidelines" className="underline hover:text-flamingo">
             Code of Conduct
           </a>{" "}
           for what we look for.
@@ -54,7 +54,7 @@ export default function AboutPage() {
       </section>
 
       <section id="governance" className="mt-10 scroll-mt-24">
-        <h2 className="font-serif text-2xl text-clay-dark">Where we&apos;re headed: from LLC to cooperative</h2>
+        <h2 className="font-display text-2xl text-flamingo">Where we&apos;re headed: from LLC to cooperative</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
           For our first three years, Yoga Tropical operates as an LLC. That&apos;s a deliberate, practical
           choice — it lets us get the platform, certification process, and instructor community right before

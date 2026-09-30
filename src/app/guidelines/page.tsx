@@ -3,14 +3,14 @@ import { WAIVER_TEXT } from "@/lib/waiver";
 export default function GuidelinesPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="font-serif text-4xl text-palm-dark">Code of Conduct</h1>
+      <h1 className="font-display text-4xl text-mint">Code of Conduct</h1>
       <p className="mt-4 leading-relaxed text-foreground/90">
         Classes happen live, on video, with real people showing up as they are. These guidelines keep the space
         warm, welcoming, and comfortable for everyone — instructors and students alike.
       </p>
 
       <section className="mt-10">
-        <h2 className="font-serif text-2xl text-clay-dark">Health &amp; safety</h2>
+        <h2 className="font-display text-2xl text-flamingo">Health &amp; safety</h2>
         <p className="mt-3 whitespace-pre-line leading-relaxed text-foreground/90">{WAIVER_TEXT}</p>
         <p className="mt-3 text-sm text-foreground/60">
           You&apos;ll sign a short version of this during onboarding, before your first booking or class.
@@ -18,7 +18,7 @@ export default function GuidelinesPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-2xl text-clay-dark">What to wear on camera</h2>
+        <h2 className="font-display text-2xl text-flamingo">What to wear on camera</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
           Wear whatever lets you move and breathe comfortably. We ask everyone — instructors and students,
           regardless of gender — to keep clothing on the modest, camera-appropriate side: fitted or
@@ -41,7 +41,7 @@ export default function GuidelinesPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-2xl text-clay-dark">Recording and privacy</h2>
+        <h2 className="font-display text-2xl text-flamingo">Recording and privacy</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
           Classes are recorded for quality review. Recordings are kept on file for a limited retention period
           (7 days by default) and only reviewed by our quality-control team, unless a class is flagged for
@@ -50,7 +50,7 @@ export default function GuidelinesPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-2xl text-clay-dark">Respect and language</h2>
+        <h2 className="font-display text-2xl text-flamingo">Respect and language</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
           This is a secular space that welcomes recovery language — a higher power, the serenity prayer, the
           steps — without requiring it. Please don&apos;t proselytize a specific religion, and please describe
@@ -60,7 +60,7 @@ export default function GuidelinesPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-2xl text-clay-dark">Instructor certification</h2>
+        <h2 className="font-display text-2xl text-flamingo">Instructor certification</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
           Instructors submit certification documents for review before they can publish classes. Our team (and
           eventually, an elected instructor council) periodically audits recorded classes for quality and

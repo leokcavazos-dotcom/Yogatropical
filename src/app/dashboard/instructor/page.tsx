@@ -277,21 +277,21 @@ export default function InstructorDashboard() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10 space-y-10">
-      <h1 className="font-serif text-3xl text-palm-dark">Instructor dashboard</h1>
-      {message && <p className="rounded-lg bg-palm/10 px-4 py-2 text-sm text-palm-dark">{message}</p>}
+      <h1 className="font-display text-3xl text-mint">Instructor dashboard</h1>
+      {message && <p className="rounded-lg bg-mint/10 px-4 py-2 text-sm text-mint">{message}</p>}
 
       {!profile.isCertified && (
-        <div className="rounded-2xl border border-gold bg-gold/10 p-4 text-sm text-clay-dark">
+        <div className="rounded-2xl border border-sunset bg-sunset/10 p-4 text-sm text-flamingo">
           Your certification is still pending review. You can set up your profile now, but you won&apos;t be
           able to publish classes or go available on demand until an admin approves a certificate.
         </div>
       )}
 
       {connectStatus?.configured && (
-        <section className="rounded-2xl border border-stone-200 p-5">
-          <h2 className="font-serif text-xl text-clay-dark">Payouts</h2>
+        <section className="rounded-2xl border border-line p-5">
+          <h2 className="font-display text-xl text-flamingo">Payouts</h2>
           {connectStatus.payoutsEnabled ? (
-            <p className="mt-2 text-sm text-palm-dark">
+            <p className="mt-2 text-sm text-mint">
               Your Stripe account is connected — you&apos;ll be paid automatically as soon as a booking is
               accepted.
             </p>
@@ -303,7 +303,7 @@ export default function InstructorDashboard() {
               <button
                 onClick={connectStripe}
                 disabled={connectLoading}
-                className="mt-3 rounded-full bg-palm px-5 py-2 text-sm font-semibold text-white hover:bg-palm-dark disabled:opacity-60"
+                className="mt-3 rounded-full bg-mint px-5 py-2 text-sm font-semibold text-ink hover:bg-mint-bright disabled:opacity-60"
               >
                 {connectLoading ? "One moment…" : connectStatus.connected ? "Finish connecting Stripe" : "Connect your Stripe account"}
               </button>
@@ -312,14 +312,14 @@ export default function InstructorDashboard() {
         </section>
       )}
 
-      <section className="rounded-2xl border border-stone-200 p-5">
-        <h2 className="font-serif text-xl text-clay-dark">Profile</h2>
+      <section className="rounded-2xl border border-line p-5">
+        <h2 className="font-display text-xl text-flamingo">Profile</h2>
         <label className="mt-3 block text-sm font-medium text-foreground/80">Bio</label>
         <textarea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           rows={3}
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+          className="mt-1 w-full rounded-lg border border-line px-3 py-2"
         />
 
         <p className="mt-4 text-sm font-medium text-foreground/80">Specialties (all &ldquo;inspired by&rdquo;)</p>
@@ -328,7 +328,7 @@ export default function InstructorDashboard() {
             <button
               key={s.id}
               onClick={() => toggleFrom(specialtyIds, s.id, setSpecialtyIds)}
-              className={`rounded-full border px-3 py-1 text-sm ${specialtyIds.includes(s.id) ? "border-clay bg-clay text-white" : "border-stone-300 text-foreground/70"}`}
+              className={`rounded-full border px-3 py-1 text-sm ${specialtyIds.includes(s.id) ? "border-flamingo bg-flamingo text-ink" : "border-line text-foreground/70"}`}
             >
               {s.name}
             </button>
@@ -341,7 +341,7 @@ export default function InstructorDashboard() {
             <button
               key={l.id}
               onClick={() => toggleFrom(languageIds, l.id, setLanguageIds)}
-              className={`rounded-full border px-3 py-1 text-sm ${languageIds.includes(l.id) ? "border-palm bg-palm text-white" : "border-stone-300 text-foreground/70"}`}
+              className={`rounded-full border px-3 py-1 text-sm ${languageIds.includes(l.id) ? "border-mint bg-mint text-ink" : "border-line text-foreground/70"}`}
             >
               {l.name}
             </button>
@@ -352,20 +352,20 @@ export default function InstructorDashboard() {
             value={newLanguage}
             onChange={(e) => setNewLanguage(e.target.value)}
             placeholder="Add another language…"
-            className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-line px-3 py-1.5 text-sm"
           />
-          <button onClick={addLanguage} className="rounded-full border border-stone-300 px-3 py-1.5 text-sm hover:bg-stone-50">
+          <button onClick={addLanguage} className="rounded-full border border-line px-3 py-1.5 text-sm hover:bg-surface-2">
             Add
           </button>
         </div>
 
-        <button onClick={saveProfile} className="mt-4 rounded-full bg-clay px-5 py-2 text-sm font-semibold text-white hover:bg-clay-dark">
+        <button onClick={saveProfile} className="mt-4 rounded-full bg-flamingo px-5 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright">
           Save profile
         </button>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 p-5">
-        <h2 className="font-serif text-xl text-clay-dark">Certification</h2>
+      <section className="rounded-2xl border border-line p-5">
+        <h2 className="font-display text-xl text-flamingo">Certification</h2>
         <p className="mt-1 text-sm text-foreground/70">Upload a certificate (PDF, PNG, or JPG) for review.</p>
         <input
           type="file"
@@ -375,15 +375,15 @@ export default function InstructorDashboard() {
         />
         <ul className="mt-4 space-y-2">
           {profile.certifications.map((c) => (
-            <li key={c.id} className="flex items-center justify-between rounded-lg bg-stone-50 px-3 py-2 text-sm">
+            <li key={c.id} className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2 text-sm">
               <span>{c.fileName}</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                   c.status === "APPROVED"
-                    ? "bg-palm/15 text-palm-dark"
+                    ? "bg-mint/15 text-mint"
                     : c.status === "REJECTED"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-gold/20 text-gold"
+                      ? "bg-red-500/15 text-red-300"
+                      : "bg-sunset/20 text-sunset"
                 }`}
               >
                 {c.status}
@@ -394,8 +394,8 @@ export default function InstructorDashboard() {
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 p-5">
-        <h2 className="font-serif text-xl text-clay-dark">On-demand availability</h2>
+      <section className="rounded-2xl border border-line p-5">
+        <h2 className="font-display text-xl text-flamingo">On-demand availability</h2>
         <label className="mt-2 flex items-center gap-2 text-sm">
           <input type="checkbox" checked={onDemandOn} onChange={(e) => setOnDemandOn(e.target.checked)} />
           I&apos;m available for on-demand sessions right now
@@ -403,7 +403,7 @@ export default function InstructorDashboard() {
         <div className="mt-3 flex flex-wrap gap-4">
           <div>
             <label className="block text-xs font-medium text-foreground/70">Length</label>
-            <select value={onDemandDuration} onChange={(e) => setOnDemandDuration(Number(e.target.value))} className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5">
+            <select value={onDemandDuration} onChange={(e) => setOnDemandDuration(Number(e.target.value))} className="mt-1 rounded-lg border border-line px-3 py-1.5">
               {DURATIONS.map((d) => (
                 <option key={d} value={d}>
                   {d} min
@@ -413,20 +413,20 @@ export default function InstructorDashboard() {
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground/70">Price per student ($)</label>
-            <input type="number" step="0.5" value={onDemandPrice} onChange={(e) => setOnDemandPrice(Number(e.target.value))} className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-1.5" />
+            <input type="number" step="0.5" value={onDemandPrice} onChange={(e) => setOnDemandPrice(Number(e.target.value))} className="mt-1 w-28 rounded-lg border border-line px-3 py-1.5" />
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground/70">Capacity (blank = unlimited)</label>
-            <input type="number" min={1} value={onDemandCapacity} onChange={(e) => setOnDemandCapacity(e.target.value)} className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-1.5" />
+            <input type="number" min={1} value={onDemandCapacity} onChange={(e) => setOnDemandCapacity(e.target.value)} className="mt-1 w-28 rounded-lg border border-line px-3 py-1.5" />
           </div>
         </div>
-        <button onClick={saveOnDemand} className="mt-4 rounded-full bg-gold px-5 py-2 text-sm font-semibold text-white hover:opacity-90">
+        <button onClick={saveOnDemand} className="mt-4 rounded-full bg-sunset px-5 py-2 text-sm font-semibold text-ink hover:opacity-90">
           Save on-demand settings
         </button>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 p-5">
-        <h2 className="font-serif text-xl text-clay-dark">In-person availability</h2>
+      <section className="rounded-2xl border border-line p-5">
+        <h2 className="font-display text-xl text-flamingo">In-person availability</h2>
         <label className="mt-2 flex items-center gap-2 text-sm">
           <input type="checkbox" checked={offersInPersonOn} onChange={(e) => setOffersInPersonOn(e.target.checked)} />
           I&apos;m available for in-person sessions at a client&apos;s home, office, or organization
@@ -438,12 +438,12 @@ export default function InstructorDashboard() {
               placeholder="e.g. Greater Miami area"
               value={inPersonServiceArea}
               onChange={(e) => setInPersonServiceArea(e.target.value)}
-              className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5"
+              className="mt-1 rounded-lg border border-line px-3 py-1.5"
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground/70">Length</label>
-            <select value={inPersonDuration} onChange={(e) => setInPersonDuration(Number(e.target.value))} className="mt-1 rounded-lg border border-stone-300 px-3 py-1.5">
+            <select value={inPersonDuration} onChange={(e) => setInPersonDuration(Number(e.target.value))} className="mt-1 rounded-lg border border-line px-3 py-1.5">
               {DURATIONS.map((d) => (
                 <option key={d} value={d}>
                   {d} min
@@ -453,35 +453,35 @@ export default function InstructorDashboard() {
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground/70">Price per student ($)</label>
-            <input type="number" step="0.5" value={inPersonPrice} onChange={(e) => setInPersonPrice(Number(e.target.value))} className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-1.5" />
+            <input type="number" step="0.5" value={inPersonPrice} onChange={(e) => setInPersonPrice(Number(e.target.value))} className="mt-1 w-28 rounded-lg border border-line px-3 py-1.5" />
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground/70">Capacity (blank = unlimited)</label>
-            <input type="number" min={1} value={inPersonCapacity} onChange={(e) => setInPersonCapacity(e.target.value)} className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-1.5" />
+            <input type="number" min={1} value={inPersonCapacity} onChange={(e) => setInPersonCapacity(e.target.value)} className="mt-1 w-28 rounded-lg border border-line px-3 py-1.5" />
           </div>
         </div>
-        <button onClick={saveInPerson} className="mt-4 rounded-full bg-gold px-5 py-2 text-sm font-semibold text-white hover:opacity-90">
+        <button onClick={saveInPerson} className="mt-4 rounded-full bg-sunset px-5 py-2 text-sm font-semibold text-ink hover:opacity-90">
           Save in-person settings
         </button>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 p-5">
-        <h2 className="font-serif text-xl text-clay-dark">Publish a scheduled class</h2>
+      <section className="rounded-2xl border border-line p-5">
+        <h2 className="font-display text-xl text-flamingo">Publish a scheduled class</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <input placeholder="Title" value={classTitle} onChange={(e) => setClassTitle(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 sm:col-span-2" />
-          <textarea placeholder="Description" value={classDescription} onChange={(e) => setClassDescription(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 sm:col-span-2" rows={2} />
+          <input placeholder="Title" value={classTitle} onChange={(e) => setClassTitle(e.target.value)} className="rounded-lg border border-line px-3 py-2 sm:col-span-2" />
+          <textarea placeholder="Description" value={classDescription} onChange={(e) => setClassDescription(e.target.value)} className="rounded-lg border border-line px-3 py-2 sm:col-span-2" rows={2} />
           <div className="flex gap-2 sm:col-span-2">
             <button
               type="button"
               onClick={() => setClassDeliveryMethod("VIRTUAL")}
-              className={`rounded-full border px-3 py-1 text-sm ${classDeliveryMethod === "VIRTUAL" ? "border-clay bg-clay text-white" : "border-stone-300 text-foreground/70"}`}
+              className={`rounded-full border px-3 py-1 text-sm ${classDeliveryMethod === "VIRTUAL" ? "border-flamingo bg-flamingo text-ink" : "border-line text-foreground/70"}`}
             >
               Virtual
             </button>
             <button
               type="button"
               onClick={() => setClassDeliveryMethod("IN_PERSON")}
-              className={`rounded-full border px-3 py-1 text-sm ${classDeliveryMethod === "IN_PERSON" ? "border-clay bg-clay text-white" : "border-stone-300 text-foreground/70"}`}
+              className={`rounded-full border px-3 py-1 text-sm ${classDeliveryMethod === "IN_PERSON" ? "border-flamingo bg-flamingo text-ink" : "border-line text-foreground/70"}`}
             >
               In-person
             </button>
@@ -491,26 +491,26 @@ export default function InstructorDashboard() {
               placeholder="Address (home, office, organization)"
               value={classLocationAddress}
               onChange={(e) => setClassLocationAddress(e.target.value)}
-              className="rounded-lg border border-stone-300 px-3 py-2 sm:col-span-2"
+              className="rounded-lg border border-line px-3 py-2 sm:col-span-2"
             />
           )}
-          <input type="date" value={classDate} onChange={(e) => setClassDate(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2" />
-          <input type="time" value={classTime} onChange={(e) => setClassTime(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2" />
-          <select value={classDuration} onChange={(e) => setClassDuration(Number(e.target.value))} className="rounded-lg border border-stone-300 px-3 py-2">
+          <input type="date" value={classDate} onChange={(e) => setClassDate(e.target.value)} className="rounded-lg border border-line px-3 py-2" />
+          <input type="time" value={classTime} onChange={(e) => setClassTime(e.target.value)} className="rounded-lg border border-line px-3 py-2" />
+          <select value={classDuration} onChange={(e) => setClassDuration(Number(e.target.value))} className="rounded-lg border border-line px-3 py-2">
             {DURATIONS.map((d) => (
               <option key={d} value={d}>
                 {d} min
               </option>
             ))}
           </select>
-          <input type="number" min={1} placeholder="Capacity (blank = unlimited)" value={classCapacity} onChange={(e) => setClassCapacity(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2" />
-          <input type="number" step="0.5" placeholder="Price per student" value={classPrice} onChange={(e) => setClassPrice(Number(e.target.value))} className="rounded-lg border border-stone-300 px-3 py-2" />
+          <input type="number" min={1} placeholder="Capacity (blank = unlimited)" value={classCapacity} onChange={(e) => setClassCapacity(e.target.value)} className="rounded-lg border border-line px-3 py-2" />
+          <input type="number" step="0.5" placeholder="Price per student" value={classPrice} onChange={(e) => setClassPrice(Number(e.target.value))} className="rounded-lg border border-line px-3 py-2" />
         </div>
 
         <p className="mt-3 text-sm font-medium text-foreground/80">Specialties</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {allSpecialties.map((s) => (
-            <button key={s.id} onClick={() => toggleFrom(classSpecialtyIds, s.id, setClassSpecialtyIds)} className={`rounded-full border px-3 py-1 text-sm ${classSpecialtyIds.includes(s.id) ? "border-clay bg-clay text-white" : "border-stone-300 text-foreground/70"}`}>
+            <button key={s.id} onClick={() => toggleFrom(classSpecialtyIds, s.id, setClassSpecialtyIds)} className={`rounded-full border px-3 py-1 text-sm ${classSpecialtyIds.includes(s.id) ? "border-flamingo bg-flamingo text-ink" : "border-line text-foreground/70"}`}>
               {s.name}
             </button>
           ))}
@@ -518,31 +518,31 @@ export default function InstructorDashboard() {
         <p className="mt-3 text-sm font-medium text-foreground/80">Languages</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {allLanguages.map((l) => (
-            <button key={l.id} onClick={() => toggleFrom(classLanguageIds, l.id, setClassLanguageIds)} className={`rounded-full border px-3 py-1 text-sm ${classLanguageIds.includes(l.id) ? "border-palm bg-palm text-white" : "border-stone-300 text-foreground/70"}`}>
+            <button key={l.id} onClick={() => toggleFrom(classLanguageIds, l.id, setClassLanguageIds)} className={`rounded-full border px-3 py-1 text-sm ${classLanguageIds.includes(l.id) ? "border-mint bg-mint text-ink" : "border-line text-foreground/70"}`}>
               {l.name}
             </button>
           ))}
         </div>
 
-        <button onClick={createClass} className="mt-4 rounded-full bg-clay px-5 py-2 text-sm font-semibold text-white hover:bg-clay-dark">
+        <button onClick={createClass} className="mt-4 rounded-full bg-flamingo px-5 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright">
           Publish class
         </button>
       </section>
 
       <section>
-        <h2 className="font-serif text-xl text-clay-dark">My classes</h2>
+        <h2 className="font-display text-xl text-flamingo">My classes</h2>
         <div className="mt-3 space-y-4">
           {classes.map((c) => (
-            <div key={c.id} className="rounded-2xl border border-stone-200 p-4 shadow-sm">
+            <div key={c.id} className="rounded-2xl border border-line p-4 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <h3 className="font-serif text-lg">{c.title}</h3>
+                  <h3 className="font-display text-lg">{c.title}</h3>
                   <p className="text-sm text-foreground/60">
                     {new Date(c.startTime).toLocaleString()} · {c.durationMinutes} min · {c.mode} · {c.status}
                   </p>
                 </div>
                 {c.deliveryMethod === "VIRTUAL" ? (
-                  <Link href={`/room/${c.id}`} className="rounded-full bg-palm px-4 py-1.5 text-sm font-semibold text-white hover:bg-palm-dark">
+                  <Link href={`/room/${c.id}`} className="rounded-full bg-mint px-4 py-1.5 text-sm font-semibold text-ink hover:bg-mint-bright">
                     Video room
                   </Link>
                 ) : (
@@ -553,16 +553,16 @@ export default function InstructorDashboard() {
               </div>
               <ul className="mt-3 space-y-2">
                 {c.enrollments.map((e) => (
-                  <li key={e.id} className="flex items-center justify-between rounded-lg bg-stone-50 px-3 py-2 text-sm">
+                  <li key={e.id} className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2 text-sm">
                     <span>
                       {e.client.name} · ${(e.priceCharged - e.commissionAmount).toFixed(2)} you earn
                     </span>
                     {e.status === "PENDING" ? (
                       <span className="flex gap-2">
-                        <button onClick={() => respond(e.id, "ACCEPTED")} className="rounded-full bg-palm px-3 py-1 text-xs font-semibold text-white hover:bg-palm-dark">
+                        <button onClick={() => respond(e.id, "ACCEPTED")} className="rounded-full bg-mint px-3 py-1 text-xs font-semibold text-ink hover:bg-mint-bright">
                           Accept
                         </button>
-                        <button onClick={() => respond(e.id, "DECLINED")} className="rounded-full border border-stone-300 px-3 py-1 text-xs hover:bg-stone-100">
+                        <button onClick={() => respond(e.id, "DECLINED")} className="rounded-full border border-line px-3 py-1 text-xs hover:bg-surface-2">
                           Decline
                         </button>
                       </span>

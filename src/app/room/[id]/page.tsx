@@ -10,7 +10,7 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
   if (!session) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-stone-600">Please sign in to join this class.</p>
+        <p className="text-foreground/70">Please sign in to join this class.</p>
       </main>
     );
   }
@@ -29,8 +29,8 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
   if (!isInstructor && !isAcceptedStudent) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <h1 className="font-serif text-2xl text-stone-800">This room isn&apos;t available to you</h1>
-        <p className="mt-2 text-stone-600">
+        <h1 className="font-display text-2xl text-foreground">This room isn&apos;t available to you</h1>
+        <p className="mt-2 text-foreground/70">
           You&apos;ll see the video link here once your booking for this class has been accepted.
         </p>
       </main>
@@ -39,18 +39,18 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="font-serif text-2xl text-stone-800">{classSession.title}</h1>
-      <p className="mb-4 text-sm text-stone-500">
+      <h1 className="font-display text-2xl text-foreground">{classSession.title}</h1>
+      <p className="mb-4 text-sm text-foreground/60">
         {new Date(classSession.startTime).toLocaleString()} · {classSession.durationMinutes} min
       </p>
 
       {classSession.deliveryMethod === "IN_PERSON" ? (
-        <div className="rounded-2xl border border-palm/30 bg-palm/5 p-6">
-          <h2 className="font-serif text-lg text-palm-dark">This is an in-person session</h2>
-          <p className="mt-2 text-stone-700">
+        <div className="rounded-2xl border border-mint/30 bg-mint/5 p-6">
+          <h2 className="font-display text-lg text-mint">This is an in-person session</h2>
+          <p className="mt-2 text-foreground/80">
             <span className="font-medium">Location:</span> {classSession.locationAddress}
           </p>
-          <p className="mt-3 text-sm text-stone-500">
+          <p className="mt-3 text-sm text-foreground/60">
             There&apos;s no video room for this one — show up at the address above at the scheduled time.
           </p>
         </div>
@@ -58,7 +58,7 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
         <JitsiRoom embedUrl={videoRoomEmbedUrl(classSession.videoRoomSlug!, session.user.name)} title={classSession.title} />
       )}
 
-      <p className="mt-4 text-xs text-stone-400">
+      <p className="mt-4 text-xs text-foreground/50">
         This session may be recorded for quality review and kept on file for a limited retention period. See our
         Code of Conduct for details.
       </p>

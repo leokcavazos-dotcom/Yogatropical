@@ -11,7 +11,7 @@ export default function JitsiRoom({ embedUrl, title }: JitsiRoomProps) {
       src={embedUrl}
       title={title}
       allow="camera; microphone; fullscreen; display-capture; autoplay"
-      className="h-[70vh] w-full rounded-2xl border border-stone-200 shadow-sm"
+      className="h-[70vh] w-full rounded-2xl border border-line shadow-sm"
     />
   );
 }
