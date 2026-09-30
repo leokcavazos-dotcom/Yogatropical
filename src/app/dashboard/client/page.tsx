@@ -1,5 +1,6 @@
 "use client";
 
+import ClientProfileForm from "@/components/ClientProfileForm";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -117,6 +118,10 @@ export default function ClientDashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-10">
+        <ClientProfileForm />
       </div>
     </main>
   );

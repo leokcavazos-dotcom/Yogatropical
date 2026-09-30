@@ -9,7 +9,7 @@ export async function GET() {
   }
   const certifications = await prisma.certification.findMany({
     orderBy: { submittedAt: "asc" },
-    include: { instructorProfile: { include: { user: true } } },
+    include: { instructorProfile: { select: { user: { select: { name: true, email: true } } } } },
   });
   return NextResponse.json(certifications);
 }

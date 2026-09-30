@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { saveCertificationFile } from "@/lib/certificationStorage";
+import { detectFileType } from "@/lib/fileStorage";
+import { CERTIFICATION_KINDS, type CertificationKindKey } from "@/lib/profileOptions";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = new Set(["application/pdf", "image/png", "image/jpeg"]);
@@ -40,12 +42,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "File is too large (10MB max)." }, { status: 400 });
   }
 
+  const kind = String(formData?.get("kind") ?? "TEACHING") as CertificationKindKey;
+  if (!(kind in CERTIFICATION_KINDS)) {
+    return NextResponse.json({ error: "Pick what kind of document this is." }, { status: 400 });
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
+  const detected = detectFileType(buffer);
+  if (detected !== "pdf" && detected !== "png" && detected !== "jpg") {
+    return NextResponse.json({ error: "Certificates must be a PDF, PNG, or JPG." }, { status: 400 });
+  }
   const storagePath = await saveCertificationFile(profile.id, file.name, buffer);
 
   const certification = await prisma.certification.create({
     data: {
       instructorProfileId: profile.id,
+      kind,
       fileName: file.name,
       storagePath,
     },

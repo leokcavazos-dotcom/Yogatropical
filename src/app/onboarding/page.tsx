@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import WelcomeVideo from "@/components/WelcomeVideo";
 import PaymentMethodStep from "@/components/onboarding/PaymentMethodStep";
+import PhotoUploader from "@/components/PhotoUploader";
 import { WAIVER_TEXT } from "@/lib/waiver";
 
 interface Tag {
@@ -11,6 +12,8 @@ interface Tag {
   name: string;
 }
 interface OnboardingStatus {
+  id: string;
+  hasPhoto: boolean;
   role: "CLIENT" | "INSTRUCTOR" | "ADMIN";
   name: string;
   phone: string | null;
@@ -158,6 +161,18 @@ export default function OnboardingPage() {
           <h2 className="font-display text-2xl text-mint">
             {isInstructor ? "Tell us about your teaching" : "A couple of quick details"}
           </h2>
+
+          <PhotoUploader
+            userId={status.id}
+            name={status.name}
+            hasPhoto={status.hasPhoto}
+            note={
+              isInstructor
+                ? "Required before you publish classes — you can add it later from your dashboard."
+                : "Optional. Only instructors you book with will see it."
+            }
+            onChange={(hasPhoto) => setStatus({ ...status, hasPhoto })}
+          />
 
           {isInstructor && (
             <>

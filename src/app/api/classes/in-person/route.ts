@@ -3,7 +3,11 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const instructors = await prisma.instructorProfile.findMany({
-    where: { offersInPerson: true, isCertified: true },
+    where: {
+      offersInPerson: true,
+      isCertified: true,
+      certifications: { some: { kind: "INSURANCE", status: "APPROVED" } },
+    },
     select: {
       id: true,
       bio: true,

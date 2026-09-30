@@ -31,7 +31,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     },
   });
 
-  if (parsed.data.decision === "APPROVED") {
+  // Only a teaching certificate makes an instructor "certified"; CPR cards and
+  // insurance show as badges and unlock in-person teaching instead.
+  if (parsed.data.decision === "APPROVED" && certification.kind === "TEACHING") {
     await prisma.instructorProfile.update({
       where: { id: certification.instructorProfileId },
       data: { isCertified: true },

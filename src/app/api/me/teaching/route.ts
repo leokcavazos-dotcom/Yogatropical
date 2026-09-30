@@ -14,7 +14,7 @@ export async function GET() {
     include: {
       specialties: true,
       languages: true,
-      enrollments: { include: { client: { select: { name: true, email: true } } } },
+      enrollments: { include: { client: { select: { id: true, name: true, email: true } } } },
     },
   });
   return NextResponse.json(classes);
