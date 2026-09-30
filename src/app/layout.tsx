@@ -31,6 +31,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </a>
             .
           </p>
+          <nav className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1">
+            <a href="/terms" className="underline hover:text-flamingo">
+              Terms of Service
+            </a>
+            <a href="/privacy" className="underline hover:text-flamingo">
+              Privacy Policy
+            </a>
+            <a href="/instructor-agreement" className="underline hover:text-flamingo">
+              Instructor Agreement
+            </a>
+            <a href="/guidelines" className="underline hover:text-flamingo">
+              Code of Conduct
+            </a>
+          </nav>
         </footer>
       </body>
     </html>

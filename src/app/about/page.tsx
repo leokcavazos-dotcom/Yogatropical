@@ -44,7 +44,7 @@ export default function AboutPage() {
         <h2 className="font-display text-2xl text-flamingo">Certification and quality</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
           Every instructor submits certification documents that our team reviews before they can publish or
-          teach a class. Classes are recorded for quality review and kept on file for a limited retention
+          teach a class. Classes may be recorded for quality review and kept on file for a limited retention
           period (currently 7 days, longer if a class is flagged for follow-up). See our{" "}
           <a href="/guidelines" className="underline hover:text-flamingo">
             Code of Conduct

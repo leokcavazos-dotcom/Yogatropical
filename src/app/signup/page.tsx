@@ -14,22 +14,22 @@ function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"CLIENT" | "INSTRUCTOR">(initialRole);
-  const [acceptedGuidelines, setAcceptedGuidelines] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!acceptedGuidelines) {
-      setError("Please confirm you've read our Code of Conduct.");
+    if (!acceptedTerms) {
+      setError("Please confirm you're 18 or older and agree to the terms.");
       return;
     }
     setLoading(true);
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, role, acceptedGuidelines }),
+      body: JSON.stringify({ name, email, password, role, acceptedTerms }),
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -96,16 +96,32 @@ function SignupForm() {
         <label className="flex items-start gap-2 text-sm text-foreground/80">
           <input
             type="checkbox"
-            checked={acceptedGuidelines}
-            onChange={(e) => setAcceptedGuidelines(e.target.checked)}
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
             className="mt-1"
           />
           <span>
-            I&apos;ve read and agree to the{" "}
+            I&apos;m 18 or older, and I agree to the{" "}
+            <Link href="/terms" target="_blank" className="underline hover:text-flamingo">
+              Terms of Service
+            </Link>{" "}
+            (including arbitration and the class action waiver),{" "}
+            <Link href="/privacy" target="_blank" className="underline hover:text-flamingo">
+              Privacy Policy
+            </Link>
+            ,{" "}
             <Link href="/guidelines" target="_blank" className="underline hover:text-flamingo">
               Code of Conduct
-            </Link>{" "}
-            (including on-camera dress guidelines and recording policy).
+            </Link>
+            {role === "INSTRUCTOR" && (
+              <>
+                , and{" "}
+                <Link href="/instructor-agreement" target="_blank" className="underline hover:text-flamingo">
+                  Instructor Agreement
+                </Link>
+              </>
+            )}
+            .
           </span>
         </label>
         {error && <p className="text-sm text-red-400">{error}</p>}

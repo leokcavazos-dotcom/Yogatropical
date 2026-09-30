@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { CANCELLATION_WINDOW_HOURS } from "@/lib/legal";
 
 interface Booking {
   id: string;
@@ -32,6 +33,7 @@ const STATUS_STYLES: Record<Booking["status"], string> = {
 export default function ClientDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
 
   function load() {
     setLoading(true);
@@ -46,8 +48,19 @@ export default function ClientDashboard() {
     load();
   }, []);
 
-  async function cancelBooking(id: string) {
-    await fetch(`/api/enrollments/${id}`, { method: "DELETE" });
+  async function cancelBooking(b: Booking) {
+    setMessage(null);
+    const hoursUntilStart = (new Date(b.classSession.startTime).getTime() - Date.now()) / 3_600_000;
+    const lateCancel = b.status === "ACCEPTED" && hoursUntilStart < CANCELLATION_WINDOW_HOURS;
+    const prompt = lateCancel
+      ? `This class starts in less than ${CANCELLATION_WINDOW_HOURS} hours, so cancelling now won't be refunded. Cancel anyway?`
+      : "Cancel this booking?";
+    if (!window.confirm(prompt)) return;
+    const res = await fetch(`/api/enrollments/${b.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setMessage(body.error ?? "Couldn't cancel that booking.");
+    }
     load();
   }
 
@@ -60,6 +73,13 @@ export default function ClientDashboard() {
         </Link>
       </div>
 
+      <p className="mt-2 text-sm text-foreground/60">
+        Free cancellation until {CANCELLATION_WINDOW_HOURS} hours before class.{" "}
+        <Link href="/terms#section-7" className="underline hover:text-flamingo">
+          Cancellation policy
+        </Link>
+      </p>
+      {message && <p className="mt-4 rounded-lg bg-red-500/15 px-4 py-2 text-sm text-red-300">{message}</p>}
       {loading && <p className="mt-6 text-foreground/60">Loading…</p>}
       {!loading && bookings.length === 0 && (
         <p className="mt-6 text-foreground/60">No bookings yet — go find a class that fits your day.</p>
@@ -108,7 +128,7 @@ export default function ClientDashboard() {
               )}
               {(b.status === "PENDING" || b.status === "ACCEPTED") && (
                 <button
-                  onClick={() => cancelBooking(b.id)}
+                  onClick={() => cancelBooking(b)}
                   className="rounded-full border border-line px-4 py-1.5 text-sm text-foreground/70 hover:bg-surface-2"
                 >
                   Cancel
