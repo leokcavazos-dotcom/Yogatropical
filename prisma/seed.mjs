@@ -29,26 +29,12 @@ const LANGUAGES = [
   "Jamaican Patois",
 ];
 
-// $8 per 20-minute block, applied across the allowed class lengths.
-const PRICE_FLOORS = [20, 40, 60, 80, 100, 120].map((durationMinutes) => ({
-  durationMinutes,
-  minPricePerStudent: (durationMinutes / 20) * 8,
-}));
-
 async function main() {
   await prisma.platformSettings.upsert({
     where: { id: "singleton" },
     update: {},
-    create: { id: "singleton", commissionPercent: 10, maxMarkupPercent: 25, recordingRetentionDays: 7 },
+    create: { id: "singleton", commissionPercent: 10, recordingRetentionDays: 7 },
   });
-
-  for (const floor of PRICE_FLOORS) {
-    await prisma.priceFloor.upsert({
-      where: { durationMinutes: floor.durationMinutes },
-      update: { minPricePerStudent: floor.minPricePerStudent },
-      create: floor,
-    });
-  }
 
   for (const specialty of SPECIALTIES) {
     await prisma.specialty.upsert({
@@ -62,7 +48,7 @@ async function main() {
     await prisma.language.upsert({ where: { name }, update: {}, create: { name } });
   }
 
-  // Reference data (specialties/languages/price floors/platform settings) is
+  // Reference data (specialties/languages/platform settings) is
   // always safe to seed. Demo login accounts are only for trying the app out —
   // skip them in a real production database with SEED_DEMO_ACCOUNTS=false.
   if (process.env.SEED_DEMO_ACCOUNTS === "false") {

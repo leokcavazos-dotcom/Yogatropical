@@ -2,6 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { COUNTRIES } from "@/lib/countries";
+import { minimumPrice } from "@/lib/pricingRules";
+
+function MinimumHint({ min, missing }: { min: number | null; missing?: string }) {
+  return <p className="mt-1 text-xs text-foreground/60">{min === null ? missing : `Minimum: $${min}`}</p>;
+}
 
 interface Tag {
   id: string;
@@ -24,6 +30,7 @@ interface Profile {
   onDemandPricePerStudent: number | null;
   offersInPerson: boolean;
   travelServiceArea: string | null;
+  country: string | null;
   inPersonDurationMinutes: number | null;
   inPersonCapacity: number | null;
   inPersonPricePerStudent: number | null;
@@ -81,6 +88,7 @@ export default function InstructorDashboard() {
 
   const [offersInPersonOn, setOffersInPersonOn] = useState(false);
   const [inPersonServiceArea, setInPersonServiceArea] = useState("");
+  const [inPersonCountry, setInPersonCountry] = useState("");
   const [inPersonDuration, setInPersonDuration] = useState(60);
   const [inPersonPrice, setInPersonPrice] = useState(30);
   const [inPersonCapacity, setInPersonCapacity] = useState<string>("");
@@ -111,6 +119,7 @@ export default function InstructorDashboard() {
         setOnDemandCapacity(p.onDemandCapacity ? String(p.onDemandCapacity) : "");
         setOffersInPersonOn(p.offersInPerson);
         setInPersonServiceArea(p.travelServiceArea ?? "");
+        setInPersonCountry(p.country ?? "");
         if (p.inPersonDurationMinutes) setInPersonDuration(p.inPersonDurationMinutes);
         if (p.inPersonPricePerStudent) setInPersonPrice(p.inPersonPricePerStudent);
         setInPersonCapacity(p.inPersonCapacity ? String(p.inPersonCapacity) : "");
@@ -212,6 +221,7 @@ export default function InstructorDashboard() {
       body: JSON.stringify({
         offersInPerson: offersInPersonOn,
         travelServiceArea: inPersonServiceArea,
+        country: inPersonCountry || null,
         inPersonDurationMinutes: inPersonDuration,
         inPersonPricePerStudent: inPersonPrice,
         inPersonCapacity: inPersonCapacity ? Number(inPersonCapacity) : null,
@@ -414,6 +424,7 @@ export default function InstructorDashboard() {
           <div>
             <label className="block text-xs font-medium text-foreground/70">Price per student ($)</label>
             <input type="number" step="0.5" value={onDemandPrice} onChange={(e) => setOnDemandPrice(Number(e.target.value))} className="mt-1 w-28 rounded-lg border border-line px-3 py-1.5" />
+            <MinimumHint min={minimumPrice({ deliveryMethod: "VIRTUAL", durationMinutes: onDemandDuration })} />
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground/70">Capacity (blank = unlimited)</label>
@@ -442,6 +453,17 @@ export default function InstructorDashboard() {
             />
           </div>
           <div>
+            <label className="block text-xs font-medium text-foreground/70">Country</label>
+            <select value={inPersonCountry} onChange={(e) => setInPersonCountry(e.target.value)} className="mt-1 rounded-lg border border-line px-3 py-1.5">
+              <option value="">Choose…</option>
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
             <label className="block text-xs font-medium text-foreground/70">Length</label>
             <select value={inPersonDuration} onChange={(e) => setInPersonDuration(Number(e.target.value))} className="mt-1 rounded-lg border border-line px-3 py-1.5">
               {DURATIONS.map((d) => (
@@ -454,6 +476,10 @@ export default function InstructorDashboard() {
           <div>
             <label className="block text-xs font-medium text-foreground/70">Price per student ($)</label>
             <input type="number" step="0.5" value={inPersonPrice} onChange={(e) => setInPersonPrice(Number(e.target.value))} className="mt-1 w-28 rounded-lg border border-line px-3 py-1.5" />
+            <MinimumHint
+              min={minimumPrice({ deliveryMethod: "IN_PERSON", durationMinutes: inPersonDuration, country: inPersonCountry })}
+              missing="Choose a country to see the minimum."
+            />
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground/70">Capacity (blank = unlimited)</label>
@@ -504,7 +530,13 @@ export default function InstructorDashboard() {
             ))}
           </select>
           <input type="number" min={1} placeholder="Capacity (blank = unlimited)" value={classCapacity} onChange={(e) => setClassCapacity(e.target.value)} className="rounded-lg border border-line px-3 py-2" />
-          <input type="number" step="0.5" placeholder="Price per student" value={classPrice} onChange={(e) => setClassPrice(Number(e.target.value))} className="rounded-lg border border-line px-3 py-2" />
+          <div>
+            <input type="number" step="0.5" placeholder="Price per student" value={classPrice} onChange={(e) => setClassPrice(Number(e.target.value))} className="w-full rounded-lg border border-line px-3 py-2" />
+            <MinimumHint
+              min={minimumPrice({ deliveryMethod: classDeliveryMethod, durationMinutes: classDuration, country: profile.country })}
+              missing="Set your country under In-person availability first."
+            />
+          </div>
         </div>
 
         <p className="mt-3 text-sm font-medium text-foreground/80">Specialties</p>

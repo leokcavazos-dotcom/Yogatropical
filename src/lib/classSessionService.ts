@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { generateVideoRoomSlug } from "@/lib/video";
-import { getPriceBand, validatePriceAgainstBand, isAllowedDuration, calculateCommission } from "@/lib/pricing";
+import { validateMinimumPrice, isAllowedDuration, calculateCommission } from "@/lib/pricing";
 import { hasSignedCurrentWaiver } from "@/lib/onboarding";
 import { isPaymentsConfigured, getStripeClient } from "@/lib/stripe";
 
@@ -56,8 +56,16 @@ export async function createScheduledClass(input: CreateScheduledClassInput) {
     throw new ClassSessionError("Add the address where this in-person class will happen.");
   }
 
-  const band = await getPriceBand(input.durationMinutes);
-  const priceError = validatePriceAgainstBand(input.pricePerStudent, band);
+  if (deliveryMethod === "IN_PERSON" && !profile.country) {
+    throw new ClassSessionError(
+      "Set the country where you teach in person (under In-person availability) before publishing an in-person class.",
+    );
+  }
+  const priceError = validateMinimumPrice(input.pricePerStudent, {
+    deliveryMethod,
+    durationMinutes: input.durationMinutes,
+    country: profile.country,
+  });
   if (priceError) throw new ClassSessionError(priceError);
 
   return prisma.classSession.create({
