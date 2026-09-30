@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import AdSlot from "@/components/AdSlot";
+import { findCountry } from "@/lib/countries";
 
 interface Specialty {
   id: string;
@@ -41,6 +42,7 @@ interface InPersonInstructor {
   id: string;
   bio: string;
   travelServiceArea: string | null;
+  country: string | null;
   inPersonDurationMinutes: number | null;
   inPersonPricePerStudent: number | null;
   inPersonCapacity: number | null;
@@ -207,8 +209,10 @@ export default function BrowsePage() {
                     {inst.specialties.map((s) => s.name).join(", ") || "General practice"} ·{" "}
                     {inst.languages.map((l) => l.name).join(", ") || "Language not set"}
                   </p>
-                  {inst.travelServiceArea && (
-                    <p className="mt-1 text-xs text-foreground/60">Travels to: {inst.travelServiceArea}</p>
+                  {(inst.travelServiceArea || inst.country) && (
+                    <p className="mt-1 text-xs text-foreground/60">
+                      Travels to: {[inst.travelServiceArea, findCountry(inst.country)?.name].filter(Boolean).join(", ")}
+                    </p>
                   )}
                   <p className="mt-1 text-sm text-foreground/80">
                     {inst.inPersonDurationMinutes} min · ${inst.inPersonPricePerStudent?.toFixed(2)}/student

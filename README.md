@@ -21,7 +21,7 @@ for the full mission and Code of Conduct.
 npm install
 cp .env.example .env   # then edit DATABASE_URL, AUTH_SECRET, etc.
 npx prisma migrate dev
-npm run db:seed        # creates demo admin/instructor/client accounts, specialties, languages, price floors
+npm run db:seed        # creates demo admin/instructor/client accounts, specialties, languages, platform settings
 npm run dev
 ```
 
@@ -43,9 +43,9 @@ Demo accounts (password `password123` for all): `admin@yogatropical.demo`, `inst
 - **Languages**: instructors tag which language(s) they teach in (seeded with English, Spanish, Portuguese,
   French, Haitian Creole, Quechua, Guarani, Nahuatl, Jamaican Patois — instructors can add others), and classes
   can be single-language or hybrid/bilingual. Clients filter by language when browsing.
-- **Pricing & commission**: each class length has a platform-set minimum price per student (seeded at $8 per
-  20-minute block); instructors can price up to a configurable markup ceiling above that minimum (seeded at
-  25%). The platform takes a 10% commission per booking, computed at request time (`src/lib/pricing.ts`).
+- **Pricing & commission**: minimum price per student is $20/hour for virtual classes worldwide and a
+  per-hour minimum for in-person classes set by the instructor's country tier ($25 / $15 / $8, see
+  `src/lib/countries.ts` and `src/lib/pricingRules.ts`), scaled by class length; there is no maximum. The platform takes a 10% commission per booking, computed at request time (`src/lib/pricing.ts`).
 - **Certification & quality control**: instructors upload certification documents (PDF/PNG/JPG) for admin
   review before they can publish classes or go available on demand (`isCertified` gate, enforced in
   `src/lib/classSessionService.ts`). Admins can rate/audit any class and flag one for follow-up, which holds
@@ -143,8 +143,8 @@ as commission revenue is still just that — an idea, not implemented. See "Busi
 
 - `prisma/schema.prisma` — data model (users/roles, instructor profiles, specialties, languages,
   certifications, safety acknowledgments, class sessions, enrollments, class audits, platform
-  settings/price floors)
-- `src/lib/` — business logic: `pricing.ts` (price bands + commission), `classSessionService.ts`
+  settings)
+- `src/lib/` — business logic: `pricing.ts` + `pricingRules.ts` (minimum prices + commission), `classSessionService.ts`
   (create/request/accept/decline + on-demand, all waiver-gated), `certificationStorage.ts` (Vercel Blob
   in production, local disk fallback for dev), `recordings.ts`, `video.ts` (Jitsi room helpers),
   `waiver.ts` (safety waiver text + version), `stripe.ts`, `onboarding.ts`, `auth.ts`

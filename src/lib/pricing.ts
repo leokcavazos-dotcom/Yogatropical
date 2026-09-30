@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { findCountry } from "@/lib/countries";
+import { minimumPrice, type MinimumPriceInput } from "@/lib/pricingRules";
 
 export const ALLOWED_DURATIONS_MINUTES = [20, 40, 60, 80, 100, 120] as const;
 export type AllowedDuration = (typeof ALLOWED_DURATIONS_MINUTES)[number];
@@ -17,34 +19,14 @@ export async function getPlatformSettings() {
   });
 }
 
-export async function getPriceFloor(durationMinutes: number): Promise<number> {
-  const floor = await prisma.priceFloor.findUnique({ where: { durationMinutes } });
-  if (floor) return floor.minPricePerStudent;
-  // Fallback formula if a bracket hasn't been explicitly configured: $8 per 20-minute block.
-  return Math.ceil(durationMinutes / 20) * 8;
-}
-
-export interface PriceBand {
-  min: number;
-  max: number;
-}
-
-export async function getPriceBand(durationMinutes: number): Promise<PriceBand> {
-  const [min, settings] = await Promise.all([
-    getPriceFloor(durationMinutes),
-    getPlatformSettings(),
-  ]);
-  const max = Math.round(min * (1 + settings.maxMarkupPercent / 100) * 100) / 100;
-  return { min, max };
-}
-
-export function validatePriceAgainstBand(price: number, band: PriceBand): string | null {
+export function validateMinimumPrice(price: number, input: MinimumPriceInput): string | null {
   if (!Number.isFinite(price) || price <= 0) return "Price must be a positive number.";
-  if (price < band.min) {
-    return `Price per student must be at least $${band.min.toFixed(2)} for this class length.`;
-  }
-  if (price > band.max) {
-    return `Price per student can't exceed $${band.max.toFixed(2)} for this class length (platform markup cap).`;
+  const min = minimumPrice(input);
+  if (min === null) return "Pick the country where you teach in person first.";
+  if (price < min) {
+    const where =
+      input.deliveryMethod === "IN_PERSON" ? `In-person classes (${findCountry(input.country)?.name})` : "Virtual classes";
+    return `${where} must be at least $${min} per student for ${input.durationMinutes} minutes.`;
   }
   return null;
 }

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { ALLOWED_DURATIONS_MINUTES, getPriceBand, validatePriceAgainstBand } from "@/lib/pricing";
+import { ALLOWED_DURATIONS_MINUTES, validateMinimumPrice } from "@/lib/pricing";
+import { findCountry } from "@/lib/countries";
 import { hasSignedCurrentWaiver } from "@/lib/onboarding";
 import { isPaymentsConfigured } from "@/lib/stripe";
 
@@ -29,6 +30,11 @@ const UpdateProfileSchema = z.object({
   onDemandPricePerStudent: z.number().nullable().optional(),
   offersInPerson: z.boolean().optional(),
   travelServiceArea: z.string().max(500).nullable().optional(),
+  country: z
+    .string()
+    .refine((code) => Boolean(findCountry(code)), "Unknown country.")
+    .nullable()
+    .optional(),
   inPersonDurationMinutes: z.number().nullable().optional(),
   inPersonCapacity: z.number().nullable().optional(),
   inPersonPricePerStudent: z.number().nullable().optional(),
@@ -55,8 +61,7 @@ export async function PATCH(request: Request) {
     if (!price) {
       return NextResponse.json({ error: "Set a price per student for on-demand sessions." }, { status: 400 });
     }
-    const band = await getPriceBand(duration);
-    const priceError = validatePriceAgainstBand(price, band);
+    const priceError = validateMinimumPrice(price, { deliveryMethod: "VIRTUAL", durationMinutes: duration });
     if (priceError) return NextResponse.json({ error: priceError }, { status: 400 });
     if (data.onDemandCapacity != null && data.onDemandCapacity < 1) {
       return NextResponse.json({ error: "Capacity must be at least 1, or left unset for unlimited." }, { status: 400 });
@@ -92,14 +97,17 @@ export async function PATCH(request: Request) {
     if (!price) {
       return NextResponse.json({ error: "Set a price per student for in-person sessions." }, { status: 400 });
     }
-    const band = await getPriceBand(duration);
-    const priceError = validatePriceAgainstBand(price, band);
+    const profile = await prisma.instructorProfile.findUnique({ where: { userId: session.user.id } });
+    const country = data.country !== undefined ? data.country : profile?.country;
+    if (!country) {
+      return NextResponse.json({ error: "Pick the country where you teach in person." }, { status: 400 });
+    }
+    const priceError = validateMinimumPrice(price, { deliveryMethod: "IN_PERSON", durationMinutes: duration, country });
     if (priceError) return NextResponse.json({ error: priceError }, { status: 400 });
     if (data.inPersonCapacity != null && data.inPersonCapacity < 1) {
       return NextResponse.json({ error: "Capacity must be at least 1, or left unset for unlimited." }, { status: 400 });
     }
 
-    const profile = await prisma.instructorProfile.findUnique({ where: { userId: session.user.id } });
     if (!profile?.isCertified) {
       return NextResponse.json(
         { error: "Your certification is still pending review, so you can't offer in-person sessions yet." },
@@ -131,6 +139,7 @@ export async function PATCH(request: Request) {
       onDemandPricePerStudent: data.onDemandPricePerStudent,
       offersInPerson: data.offersInPerson,
       travelServiceArea: data.travelServiceArea,
+      country: data.country,
       inPersonDurationMinutes: data.inPersonDurationMinutes,
       inPersonCapacity: data.inPersonCapacity,
       inPersonPricePerStudent: data.inPersonPricePerStudent,

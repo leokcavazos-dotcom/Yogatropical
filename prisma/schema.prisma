@@ -99,6 +99,7 @@ model InstructorProfile {
   payoutEmail             String?
   offersInPerson          Boolean      @default(false)
   travelServiceArea       String?
+  country                 String?
   inPersonDurationMinutes Int?
   inPersonCapacity        Int?
   inPersonPricePerStudent Float?
@@ -201,16 +202,9 @@ model Enrollment {
   @@unique([classSessionId, clientId])
 }
 
-model PriceFloor {
-  id                 String @id @default(cuid())
-  durationMinutes    Int    @unique
-  minPricePerStudent Float
-}
-
 model PlatformSettings {
   id                     String   @id @default("singleton")
   commissionPercent      Float    @default(10)
-  maxMarkupPercent       Float    @default(25)
   recordingRetentionDays Int      @default(7)
   updatedAt              DateTime @updatedAt
 }
