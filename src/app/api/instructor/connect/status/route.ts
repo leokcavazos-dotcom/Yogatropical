@@ -18,9 +18,15 @@ export async function GET() {
     return NextResponse.json({ configured: true, connected: false, payoutsEnabled: false });
   }
 
-  const stripe = getStripeClient();
-  const account = await stripe.accounts.retrieve(profile.stripeAccountId);
-  const payoutsEnabled = Boolean(account.payouts_enabled && account.charges_enabled);
+  let payoutsEnabled: boolean;
+  try {
+    const account = await getStripeClient().accounts.retrieve(profile.stripeAccountId);
+    payoutsEnabled = Boolean(account.payouts_enabled && account.charges_enabled);
+  } catch (error) {
+    // Keep the dashboard usable with the last known state if Stripe is unreachable.
+    console.error("Stripe Connect status check failed", error);
+    return NextResponse.json({ configured: true, connected: true, payoutsEnabled: profile.payoutsEnabled });
+  }
 
   if (payoutsEnabled !== profile.payoutsEnabled) {
     await prisma.instructorProfile.update({ where: { userId: session.user.id }, data: { payoutsEnabled } });

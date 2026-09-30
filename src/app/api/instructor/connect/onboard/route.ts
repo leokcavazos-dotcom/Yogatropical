@@ -20,24 +20,30 @@ export async function POST(request: Request) {
   const profile = await prisma.instructorProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   const user = await prisma.user.findUniqueOrThrow({ where: { id: session.user.id } });
 
-  let accountId = profile.stripeAccountId;
-  if (!accountId) {
-    const account = await stripe.accounts.create({
-      type: "express",
-      email: user.email,
-      capabilities: { transfers: { requested: true }, card_payments: { requested: true } },
+  try {
+    let accountId = profile.stripeAccountId;
+    if (!accountId) {
+      const account = await stripe.accounts.create({
+        type: "express",
+        email: user.email,
+        capabilities: { transfers: { requested: true }, card_payments: { requested: true } },
+      });
+      accountId = account.id;
+      await prisma.instructorProfile.update({ where: { userId: user.id }, data: { stripeAccountId: accountId } });
+    }
+
+    const origin = new URL(request.url).origin;
+    const accountLink = await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: `${origin}/dashboard/instructor?stripe=refresh`,
+      return_url: `${origin}/dashboard/instructor?stripe=return`,
+      type: "account_onboarding",
     });
-    accountId = account.id;
-    await prisma.instructorProfile.update({ where: { userId: user.id }, data: { stripeAccountId: accountId } });
+
+    return NextResponse.json({ url: accountLink.url });
+  } catch (error) {
+    console.error("Stripe Connect onboarding failed", error);
+    const detail = error instanceof Error ? error.message : "Unknown error.";
+    return NextResponse.json({ error: `Stripe couldn't start setup: ${detail}` }, { status: 502 });
   }
-
-  const origin = new URL(request.url).origin;
-  const accountLink = await stripe.accountLinks.create({
-    account: accountId,
-    refresh_url: `${origin}/dashboard/instructor?stripe=refresh`,
-    return_url: `${origin}/dashboard/instructor?stripe=return`,
-    type: "account_onboarding",
-  });
-
-  return NextResponse.json({ url: accountLink.url });
 }
