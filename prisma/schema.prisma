@@ -241,3 +241,46 @@ model PlatformSettings {
   recordingRetentionDays Int      @default(7)
   updatedAt              DateTime @updatedAt
 }
+
+enum ProductTier {
+  LUXE
+  EVERYDAY
+  BUDGET
+}
+
+enum AdPlacement {
+  HOME
+  BROWSE
+  STORE
+}
+
+// Curated affiliate products: we link out, the retailer ships, we may earn a commission.
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String      @default("")
+  retailer    String
+  url         String
+  priceLabel  String      @default("")
+  tier        ProductTier
+  tags        String[]    @default([])
+  imagePath   String?
+  active      Boolean     @default(true)
+  sortOrder   Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([active, tier])
+}
+
+// Admin-managed sponsored banners. One random active ad shows per placement.
+model Ad {
+  id         String        @id @default(cuid())
+  altText    String
+  linkUrl    String
+  imagePath  String
+  placements AdPlacement[]
+  active     Boolean       @default(true)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}

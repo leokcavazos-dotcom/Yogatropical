@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import AdSlot from "@/components/AdSlot";
+import AdBar from "@/components/AdBar";
 import Avatar from "@/components/Avatar";
 import { findCountry } from "@/lib/countries";
 
@@ -334,10 +334,7 @@ export default function BrowsePage() {
 
       {message && <p className="mt-4 rounded-lg bg-mint/10 px-4 py-2 text-sm text-mint">{message}</p>}
 
-      <AdSlot
-        imageUrl={process.env.NEXT_PUBLIC_AD_SLOT_BROWSE_IMAGE_URL}
-        linkUrl={process.env.NEXT_PUBLIC_AD_SLOT_BROWSE_LINK_URL}
-      />
+      <AdBar placement="BROWSE" className="my-6" />
 
       <section className="mt-6 space-y-4">
         {loading && <p className="text-foreground/60">Loading…</p>}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import AdBar from "@/components/AdBar";
 
 export default function Home() {
   return (
@@ -67,6 +68,10 @@ export default function Home() {
           Read our full mission
         </Link>
       </section>
+
+      <div className="px-4 pb-12">
+        <AdBar placement="HOME" />
+      </div>
     </main>
   );
 }

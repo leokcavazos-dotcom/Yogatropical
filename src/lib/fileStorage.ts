@@ -73,3 +73,30 @@ export function detectFileType(data: Buffer): "png" | "jpg" | "webp" | "pdf" | n
   if (data.length >= 5 && data.toString("ascii", 0, 5) === "%PDF-") return "pdf";
   return null;
 }
+
+/** Reads an uploaded image, checking its size and real type. */
+export async function readImageUpload(
+  file: FormDataEntryValue | null | undefined,
+  maxBytes: number,
+): Promise<{ buffer: Buffer; ext: "jpg" | "png" | "webp" } | { error: string }> {
+  if (!(file instanceof File) || file.size === 0) return { error: "Attach an image (JPG, PNG, or WebP)." };
+  if (file.size > maxBytes) return { error: `Image is too large (${Math.round(maxBytes / 1024 / 1024)}MB max).` };
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const type = detectFileType(buffer);
+  if (type !== "jpg" && type !== "png" && type !== "webp") {
+    return { error: "Images must be a JPG, PNG, or WebP file." };
+  }
+  return { buffer, ext: type };
+}
+
+/** Serves a stored image with a safe content type. */
+export async function imageResponse(storagePath: string, cacheControl: string) {
+  const bytes = await readUploadedFile(storagePath);
+  return new Response(new Uint8Array(bytes), {
+    headers: {
+      "Content-Type": contentTypeFor(storagePath),
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": cacheControl,
+    },
+  });
+}

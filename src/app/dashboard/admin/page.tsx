@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { CERTIFICATION_KINDS, type CertificationKindKey } from "@/lib/profileOptions";
+import ProductManager from "@/components/admin/ProductManager";
+import AdManager from "@/components/admin/AdManager";
 
 interface PendingCertification {
   id: string;
@@ -109,6 +111,9 @@ export default function AdminDashboard() {
           ))}
         </ul>
       </section>
+
+      <ProductManager />
+      <AdManager />
 
       <section>
         <h2 className="font-display text-xl text-flamingo">Quality control — recent classes</h2>
