@@ -6,6 +6,13 @@ import { ALLOWED_DURATIONS_MINUTES, validateMinimumPrice } from "@/lib/pricing";
 import { findCountry } from "@/lib/countries";
 import { hasSignedCurrentWaiver } from "@/lib/onboarding";
 import { isPaymentsConfigured } from "@/lib/stripe";
+import { AGE_GROUPS } from "@/lib/profileOptions";
+import {
+  hasProfilePhoto,
+  hasApprovedInsurance,
+  PHOTO_REQUIRED_MESSAGE,
+  INSURANCE_REQUIRED_MESSAGE,
+} from "@/lib/profileAccess";
 
 export async function GET() {
   const session = await auth();
@@ -14,13 +21,24 @@ export async function GET() {
   }
   const profile = await prisma.instructorProfile.findUnique({
     where: { userId: session.user.id },
-    include: { specialties: true, languages: true, certifications: true },
+    include: {
+      specialties: true,
+      languages: true,
+      certifications: { orderBy: { submittedAt: "desc" } },
+      user: { select: { name: true, photoPath: true } },
+    },
   });
-  return NextResponse.json(profile);
+  if (!profile) return NextResponse.json(null);
+  const { user, ...rest } = profile;
+  return NextResponse.json({ ...rest, name: user.name, hasPhoto: Boolean(user.photoPath) });
 }
 
 const UpdateProfileSchema = z.object({
   bio: z.string().max(2000).optional(),
+  whyITeach: z.string().max(2000).optional(),
+  ageGroups: z.array(z.enum(AGE_GROUPS)).optional(),
+  specialPopulations: z.array(z.string().trim().min(1).max(40)).max(15).optional(),
+  maxStudents: z.number().int().min(1).max(1000).nullable().optional(),
   payoutEmail: z.string().email().max(200).nullable().optional(),
   specialtyIds: z.array(z.string()).optional(),
   languageIds: z.array(z.string()).optional(),
@@ -86,6 +104,9 @@ export async function PATCH(request: Request) {
         { status: 400 },
       );
     }
+    if (!(await hasProfilePhoto(session.user.id))) {
+      return NextResponse.json({ error: PHOTO_REQUIRED_MESSAGE }, { status: 400 });
+    }
   }
 
   if (data.offersInPerson) {
@@ -126,12 +147,22 @@ export async function PATCH(request: Request) {
         { status: 400 },
       );
     }
+    if (!(await hasProfilePhoto(session.user.id))) {
+      return NextResponse.json({ error: PHOTO_REQUIRED_MESSAGE }, { status: 400 });
+    }
+    if (!(await hasApprovedInsurance(profile.id))) {
+      return NextResponse.json({ error: INSURANCE_REQUIRED_MESSAGE }, { status: 400 });
+    }
   }
 
   const updated = await prisma.instructorProfile.update({
     where: { userId: session.user.id },
     data: {
       bio: data.bio,
+      whyITeach: data.whyITeach,
+      ageGroups: data.ageGroups,
+      specialPopulations: data.specialPopulations ? [...new Set(data.specialPopulations)] : undefined,
+      maxStudents: data.maxStudents,
       payoutEmail: data.payoutEmail,
       isAvailableOnDemand: data.isAvailableOnDemand,
       onDemandDurationMinutes: data.onDemandDurationMinutes,

@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { COUNTRIES } from "@/lib/countries";
 import { minimumPrice } from "@/lib/pricingRules";
+import { AGE_GROUPS, SPECIAL_POPULATIONS, CERTIFICATION_KINDS, type CertificationKindKey } from "@/lib/profileOptions";
+import PhotoUploader from "@/components/PhotoUploader";
 
 function MinimumHint({ min, missing }: { min: number | null; missing?: string }) {
   return <p className="mt-1 text-xs text-foreground/60">{min === null ? missing : `Minimum: $${min}`}</p>;
@@ -15,6 +17,7 @@ interface Tag {
 }
 interface Certification {
   id: string;
+  kind: CertificationKindKey;
   fileName: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
   reviewNotes: string;
@@ -22,7 +25,14 @@ interface Certification {
 }
 interface Profile {
   id: string;
+  userId: string;
+  name: string;
+  hasPhoto: boolean;
   bio: string;
+  whyITeach: string;
+  ageGroups: string[];
+  specialPopulations: string[];
+  maxStudents: number | null;
   isCertified: boolean;
   isAvailableOnDemand: boolean;
   onDemandDurationMinutes: number | null;
@@ -43,7 +53,7 @@ interface Enrollment {
   status: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED" | "COMPLETED" | "PAYMENT_FAILED";
   priceCharged: number;
   commissionAmount: number;
-  client: { name: string; email: string };
+  client: { id: string; name: string; email: string };
 }
 interface ConnectStatus {
   configured: boolean;
@@ -77,6 +87,12 @@ export default function InstructorDashboard() {
   const [connectLoading, setConnectLoading] = useState(false);
 
   const [bio, setBio] = useState("");
+  const [whyITeach, setWhyITeach] = useState("");
+  const [ageGroups, setAgeGroups] = useState<string[]>([]);
+  const [specialPopulations, setSpecialPopulations] = useState<string[]>([]);
+  const [customPopulation, setCustomPopulation] = useState("");
+  const [maxStudents, setMaxStudents] = useState("");
+  const [certKind, setCertKind] = useState<CertificationKindKey>("TEACHING");
   const [specialtyIds, setSpecialtyIds] = useState<string[]>([]);
   const [languageIds, setLanguageIds] = useState<string[]>([]);
   const [newLanguage, setNewLanguage] = useState("");
@@ -111,6 +127,10 @@ export default function InstructorDashboard() {
       .then((p: Profile) => {
         setProfile(p);
         setBio(p.bio);
+        setWhyITeach(p.whyITeach);
+        setAgeGroups(p.ageGroups);
+        setSpecialPopulations(p.specialPopulations);
+        setMaxStudents(p.maxStudents ? String(p.maxStudents) : "");
         setSpecialtyIds(p.specialties.map((s) => s.id));
         setLanguageIds(p.languages.map((l) => l.id));
         setOnDemandOn(p.isAvailableOnDemand);
@@ -164,11 +184,25 @@ export default function InstructorDashboard() {
     const res = await fetch("/api/instructor/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bio, specialtyIds, languageIds }),
+      body: JSON.stringify({
+        bio,
+        whyITeach,
+        ageGroups,
+        specialPopulations,
+        maxStudents: maxStudents ? Number(maxStudents) : null,
+        specialtyIds,
+        languageIds,
+      }),
     });
     const body = await res.json().catch(() => ({}));
     setMessage(res.ok ? "Profile saved." : body.error ?? "Couldn't save profile.");
     if (res.ok) loadProfile();
+  }
+
+  function addCustomPopulation() {
+    const value = customPopulation.trim();
+    if (value && !specialPopulations.includes(value)) setSpecialPopulations([...specialPopulations, value]);
+    setCustomPopulation("");
   }
 
   async function addLanguage() {
@@ -190,9 +224,10 @@ export default function InstructorDashboard() {
     setMessage(null);
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("kind", certKind);
     const res = await fetch("/api/instructor/certifications", { method: "POST", body: formData });
     const body = await res.json().catch(() => ({}));
-    setMessage(res.ok ? "Certificate submitted for review." : body.error ?? "Upload failed.");
+    setMessage(res.ok ? `${CERTIFICATION_KINDS[certKind]} submitted for review.` : body.error ?? "Upload failed.");
     if (res.ok) loadProfile();
   }
 
@@ -323,13 +358,86 @@ export default function InstructorDashboard() {
       )}
 
       <section className="rounded-2xl border border-line p-5">
-        <h2 className="font-display text-xl text-flamingo">Profile</h2>
-        <label className="mt-3 block text-sm font-medium text-foreground/80">Bio</label>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-xl text-flamingo">Profile</h2>
+          <Link href={`/instructors/${profile.userId}`} className="text-sm text-mint underline hover:text-mint-bright">
+            View my public profile
+          </Link>
+        </div>
+        <div className="mt-4">
+          <PhotoUploader
+            userId={profile.userId}
+            name={profile.name}
+            hasPhoto={profile.hasPhoto}
+            note="Required before you publish classes. A clear, friendly photo of your face works best."
+            onChange={(hasPhoto) => setProfile({ ...profile, hasPhoto })}
+          />
+        </div>
+
+        <label className="mt-5 block text-sm font-medium text-foreground/80">About me</label>
         <textarea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           rows={3}
+          placeholder="Your background, training, and teaching style."
           className="mt-1 w-full rounded-lg border border-line px-3 py-2"
+        />
+
+        <label className="mt-4 block text-sm font-medium text-foreground/80">Why I share my practice</label>
+        <textarea
+          value={whyITeach}
+          onChange={(e) => setWhyITeach(e.target.value)}
+          rows={3}
+          placeholder="What this practice has given you, and why you love teaching it."
+          className="mt-1 w-full rounded-lg border border-line px-3 py-2"
+        />
+
+        <p className="mt-4 text-sm font-medium text-foreground/80">Ages I teach</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {AGE_GROUPS.map((g) => (
+            <button
+              key={g}
+              onClick={() => toggleFrom(ageGroups, g, setAgeGroups)}
+              className={`rounded-full border px-3 py-1 text-sm ${ageGroups.includes(g) ? "border-mint bg-mint text-ink" : "border-line text-foreground/70"}`}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+
+        <p className="mt-4 text-sm font-medium text-foreground/80">Special populations I&apos;m experienced with</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {[...SPECIAL_POPULATIONS, ...specialPopulations.filter((p) => !(SPECIAL_POPULATIONS as readonly string[]).includes(p))].map((p) => (
+            <button
+              key={p}
+              onClick={() => toggleFrom(specialPopulations, p, setSpecialPopulations)}
+              className={`rounded-full border px-3 py-1 text-sm ${specialPopulations.includes(p) ? "border-flamingo bg-flamingo text-ink" : "border-line text-foreground/70"}`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+        <div className="mt-2 flex gap-2">
+          <input
+            value={customPopulation}
+            onChange={(e) => setCustomPopulation(e.target.value)}
+            maxLength={40}
+            placeholder="Add another…"
+            className="rounded-lg border border-line px-3 py-1.5 text-sm"
+          />
+          <button onClick={addCustomPopulation} className="rounded-full border border-line px-3 py-1.5 text-sm hover:bg-surface-2">
+            Add
+          </button>
+        </div>
+
+        <label className="mt-4 block text-sm font-medium text-foreground/80">Most students I can teach at once</label>
+        <input
+          type="number"
+          min={1}
+          value={maxStudents}
+          onChange={(e) => setMaxStudents(e.target.value)}
+          placeholder="e.g. 12"
+          className="mt-1 w-28 rounded-lg border border-line px-3 py-1.5"
         />
 
         <p className="mt-4 text-sm font-medium text-foreground/80">Specialties (all &ldquo;inspired by&rdquo;)</p>
@@ -375,18 +483,42 @@ export default function InstructorDashboard() {
       </section>
 
       <section className="rounded-2xl border border-line p-5">
-        <h2 className="font-display text-xl text-flamingo">Certification</h2>
-        <p className="mt-1 text-sm text-foreground/70">Upload a certificate (PDF, PNG, or JPG) for review.</p>
-        <input
-          type="file"
-          accept="application/pdf,image/png,image/jpeg"
-          onChange={(e) => e.target.files?.[0] && uploadCertification(e.target.files[0])}
-          className="mt-2 text-sm"
-        />
+        <h2 className="font-display text-xl text-flamingo">Certificates &amp; documents</h2>
+        <p className="mt-1 text-sm text-foreground/70">
+          Upload a photo or PDF for review. Approved teaching certificates and CPR cards can be viewed by signed-in
+          members on your profile. Insurance documents stay private — members just see an &ldquo;Insured&rdquo; badge.
+          Teaching in person requires approved liability insurance.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <select
+            value={certKind}
+            onChange={(e) => setCertKind(e.target.value as CertificationKindKey)}
+            className="rounded-lg border border-line px-3 py-1.5 text-sm"
+          >
+            {Object.entries(CERTIFICATION_KINDS).map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <input
+            type="file"
+            accept="application/pdf,image/png,image/jpeg"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) uploadCertification(file);
+            }}
+            className="text-sm"
+          />
+        </div>
         <ul className="mt-4 space-y-2">
           {profile.certifications.map((c) => (
             <li key={c.id} className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2 text-sm">
-              <span>{c.fileName}</span>
+              <span>
+                <span className="font-medium">{CERTIFICATION_KINDS[c.kind]}</span>
+                <span className="text-foreground/60"> · {c.fileName}</span>
+              </span>
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                   c.status === "APPROVED"
@@ -587,7 +719,10 @@ export default function InstructorDashboard() {
                 {c.enrollments.map((e) => (
                   <li key={e.id} className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2 text-sm">
                     <span>
-                      {e.client.name} · ${(e.priceCharged - e.commissionAmount).toFixed(2)} you earn
+                      <Link href={`/clients/${e.client.id}`} className="underline hover:text-flamingo">
+                        {e.client.name}
+                      </Link>{" "}
+                      · ${(e.priceCharged - e.commissionAmount).toFixed(2)} you earn
                     </span>
                     {e.status === "PENDING" ? (
                       <span className="flex gap-2">
