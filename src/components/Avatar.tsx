@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/i18n/client";
+import { fmt } from "@/i18n/config";
 
 const SIZES = { sm: "h-10 w-10 text-sm", md: "h-16 w-16 text-xl", lg: "h-28 w-28 text-4xl" } as const;
 
@@ -16,6 +18,7 @@ export default function Avatar({
   size?: keyof typeof SIZES;
   version?: string | number;
 }) {
+  const { t } = useI18n();
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const src = `/api/users/${userId}/photo${version ? `?v=${version}` : ""}`;
   const initials = name
@@ -39,7 +42,7 @@ export default function Avatar({
     // eslint-disable-next-line @next/next/no-img-element -- served by our own access-checked API route
     <img
       src={src}
-      alt={`Photo of ${name}`}
+      alt={fmt(t.common.photoOf, { name })}
       onError={() => setFailedSrc(src)}
       className={`${SIZES[size]} shrink-0 rounded-full border border-line object-cover`}
     />

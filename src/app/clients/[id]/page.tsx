@@ -2,15 +2,20 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { findCountry } from "@/lib/countries";
+import { countryName } from "@/lib/countries";
+import { getI18n } from "@/i18n/server";
 import { canViewClientProfile } from "@/lib/profileAccess";
 import Avatar from "@/components/Avatar";
 
-export const metadata: Metadata = { title: "Client profile — Yoga Tropical", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.clientPage.metaTitle, robots: { index: false } };
+}
 
 export default async function ClientProfilePage({ params }: PageProps<"/clients/[id]">) {
   const { id } = await params;
-  const session = await auth();
+  const [session, { locale, t }] = await Promise.all([auth(), getI18n()]);
+  const cp = t.clientPage;
   // Same response whether the client doesn't exist or the viewer lacks access, so profiles can't be probed.
   if (!(await canViewClientProfile(session?.user, id))) notFound();
 
@@ -28,19 +33,19 @@ export default async function ClientProfilePage({ params }: PageProps<"/clients/
 
   const languages = p?.languages.map((l) => l.name) ?? [];
   if (languages.length === 0 && client.preferredLanguage) languages.push(client.preferredLanguage.name);
-  const prefers = [p?.prefersVirtual && "Virtual", p?.prefersInPerson && "In person"].filter(Boolean).join(" & ");
-  const where = [p?.area, findCountry(p?.country)?.name].filter(Boolean).join(", ");
+  const prefers = [p?.prefersVirtual && t.common.virtual, p?.prefersInPerson && t.common.inPerson].filter(Boolean).join(" · ");
+  const where = [p?.area, countryName(p?.country, locale)].filter(Boolean).join(", ");
 
   const rows: [string, string | null | undefined][] = [
-    ["Age range", p?.ageRange],
-    ["Languages", languages.join(", ")],
-    ["Prefers", prefers],
-    ["Location", where],
+    [cp.ageRange, p?.ageRange],
+    [cp.languages, languages.join(", ")],
+    [cp.prefers, prefers],
+    [cp.location, where],
   ];
   const sections: [string, string | undefined][] = [
-    ["What brings them here", p?.whatBringsYou],
-    ["About them", p?.aboutMe],
-    ["Notes for instructors", p?.notesForInstructors],
+    [cp.whatBrings, p?.whatBringsYou],
+    [cp.about, p?.aboutMe],
+    [cp.notes, p?.notesForInstructors],
   ];
 
   return (
@@ -50,7 +55,7 @@ export default async function ClientProfilePage({ params }: PageProps<"/clients/
         <div>
           <h1 className="font-display text-3xl text-mint">{client.name}</h1>
           <p className="mt-1 text-xs text-foreground/60">
-            Private profile — shared only with instructors this person has booked. Please keep it confidential.
+            {cp.privateNote}
           </p>
         </div>
       </div>
@@ -75,7 +80,7 @@ export default async function ClientProfilePage({ params }: PageProps<"/clients/
           </section>
         ))}
 
-      {!p && <p className="mt-8 text-sm text-foreground/60">This client hasn&apos;t filled out a profile yet.</p>}
+      {!p && <p className="mt-8 text-sm text-foreground/60">{cp.empty}</p>}
     </main>
   );
 }

@@ -4,9 +4,11 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/i18n/client";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +21,7 @@ export default function LoginPage() {
     const result = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
     if (result?.error) {
-      setError("That email and password don't match an account.");
+      setError(t.auth.loginError);
       return;
     }
     router.push("/");
@@ -28,10 +30,10 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-16">
-      <h1 className="font-display text-3xl text-mint">Welcome back</h1>
+      <h1 className="font-display text-3xl text-mint">{t.auth.welcomeBack}</h1>
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-foreground/80">Email</label>
+          <label className="block text-sm font-medium text-foreground/80">{t.auth.email}</label>
           <input
             type="email"
             required
@@ -41,7 +43,7 @@ export default function LoginPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground/80">Password</label>
+          <label className="block text-sm font-medium text-foreground/80">{t.auth.password}</label>
           <input
             type="password"
             required
@@ -56,13 +58,13 @@ export default function LoginPage() {
           disabled={loading}
           className="w-full rounded-full bg-flamingo px-4 py-2 font-semibold text-ink hover:bg-flamingo-bright disabled:opacity-60"
         >
-          {loading ? "Signing in…" : "Sign in"}
+          {loading ? t.auth.signingIn : t.auth.signIn}
         </button>
       </form>
       <p className="mt-6 text-sm text-foreground/70">
-        New here?{" "}
+        {t.auth.newHere}{" "}
         <Link href="/signup" className="underline hover:text-flamingo">
-          Create an account
+          {t.auth.createAccountLink}
         </Link>
       </p>
     </main>

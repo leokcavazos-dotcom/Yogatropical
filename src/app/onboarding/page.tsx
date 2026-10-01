@@ -6,6 +6,8 @@ import WelcomeVideo from "@/components/WelcomeVideo";
 import PaymentMethodStep from "@/components/onboarding/PaymentMethodStep";
 import PhotoUploader from "@/components/PhotoUploader";
 import { WAIVER_TEXT } from "@/lib/waiver";
+import { useI18n } from "@/i18n/client";
+import { fmt } from "@/i18n/config";
 
 interface Tag {
   id: string;
@@ -27,10 +29,11 @@ interface OnboardingStatus {
   } | null;
 }
 
-const STEP_LABELS = ["Welcome", "Your profile", "Safety", "Payment", "Done"];
-
 export default function OnboardingPage() {
   const router = useRouter();
+  const { locale, t } = useI18n();
+  const o = t.onboarding;
+  const STEP_LABELS = o.steps;
   const [status, setStatus] = useState<OnboardingStatus | null>(null);
   const [step, setStep] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
@@ -82,7 +85,7 @@ export default function OnboardingPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setMessage(body.error ?? "Couldn't save your profile.");
+        setMessage(body.error ?? o.saveProfileError);
         return;
       }
     }
@@ -97,7 +100,7 @@ export default function OnboardingPage() {
   async function signWaiver() {
     setMessage(null);
     if (!agreed) {
-      setMessage("Please check the box to confirm you've read this.");
+      setMessage(o.mustCheck);
       return;
     }
     const res = await fetch("/api/onboarding/waiver", {
@@ -107,7 +110,7 @@ export default function OnboardingPage() {
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setMessage(body.error ?? "Couldn't record your signature.");
+      setMessage(body.error ?? o.signError);
       return;
     }
     goTo(3);
@@ -120,7 +123,7 @@ export default function OnboardingPage() {
   }
 
   if (!status) {
-    return <main className="mx-auto max-w-xl px-4 py-16 text-center text-foreground/60">Loading…</main>;
+    return <main className="mx-auto max-w-xl px-4 py-16 text-center text-foreground/60">{t.common.loading}</main>;
   }
 
   const isInstructor = status.role === "INSTRUCTOR";
@@ -140,18 +143,14 @@ export default function OnboardingPage() {
         <div className="space-y-5 text-center">
           <WelcomeVideo
             src={isInstructor ? process.env.NEXT_PUBLIC_WELCOME_VIDEO_INSTRUCTOR_URL : process.env.NEXT_PUBLIC_WELCOME_VIDEO_CLIENT_URL}
-            fallbackHeadline={isInstructor ? "Welcome to Yoga Tropical, instructor" : "Welcome to Yoga Tropical"}
-            fallbackBody={
-              isInstructor
-                ? "A warm, secular, recovery-friendly space to share movement, breath, and stillness — in your language, on your schedule."
-                : "Live, online movement, breath, and meditation classes — welcoming, secular, and rooted in recovery. Let's get you set up in a couple of minutes."
-            }
+            fallbackHeadline={isInstructor ? o.welcomeInstructorTitle : o.welcomeClientTitle}
+            fallbackBody={isInstructor ? o.welcomeInstructorBody : o.welcomeClientBody}
           />
           <p className="text-sm text-foreground/70">
-            This will only take a couple of minutes — a quick profile, a short safety note, and you&apos;re in.
+            {o.quick}
           </p>
           <button onClick={() => goTo(1)} className="w-full rounded-full bg-flamingo px-4 py-2.5 font-semibold text-ink hover:bg-flamingo-bright">
-            Let&apos;s go
+            {o.letsGo}
           </button>
         </div>
       )}
@@ -159,25 +158,21 @@ export default function OnboardingPage() {
       {step === 1 && (
         <div className="space-y-4">
           <h2 className="font-display text-2xl text-mint">
-            {isInstructor ? "Tell us about your teaching" : "A couple of quick details"}
+            {isInstructor ? o.profileInstructorTitle : o.profileClientTitle}
           </h2>
 
           <PhotoUploader
             userId={status.id}
             name={status.name}
             hasPhoto={status.hasPhoto}
-            note={
-              isInstructor
-                ? "Required before you publish classes — you can add it later from your dashboard."
-                : "Optional. Only instructors you book with will see it."
-            }
+            note={isInstructor ? o.photoInstructorNote : o.photoClientNote}
             onChange={(hasPhoto) => setStatus({ ...status, hasPhoto })}
           />
 
           {isInstructor && (
             <>
               <div>
-                <label className="block text-sm font-medium text-foreground/80">Short bio</label>
+                <label className="block text-sm font-medium text-foreground/80">{o.shortBio}</label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
@@ -186,7 +181,7 @@ export default function OnboardingPage() {
                 />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground/80">Specialties (all &ldquo;inspired by&rdquo;)</p>
+                <p className="text-sm font-medium text-foreground/80">{o.specialties}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {allSpecialties.map((s) => (
                     <button
@@ -200,7 +195,7 @@ export default function OnboardingPage() {
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground/80">Languages you teach in</p>
+                <p className="text-sm font-medium text-foreground/80">{o.languagesTeach}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {allLanguages.map((l) => (
                     <button
@@ -218,13 +213,13 @@ export default function OnboardingPage() {
 
           {!isInstructor && (
             <div>
-              <label className="block text-sm font-medium text-foreground/80">Preferred language</label>
+              <label className="block text-sm font-medium text-foreground/80">{o.preferredLanguage}</label>
               <select
                 value={preferredLanguageId}
                 onChange={(e) => setPreferredLanguageId(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-line px-3 py-2"
               >
-                <option value="">No preference</option>
+                <option value="">{o.noPreference}</option>
                 {allLanguages.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.name}
@@ -235,29 +230,30 @@ export default function OnboardingPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-foreground/80">Phone (optional)</label>
+            <label className="block text-sm font-medium text-foreground/80">{o.phone}</label>
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="For class reminders — never shared"
+              placeholder={o.phonePlaceholder}
               className="mt-1 w-full rounded-lg border border-line px-3 py-2"
             />
           </div>
 
           <button onClick={saveProfileStep} className="w-full rounded-full bg-flamingo px-4 py-2.5 font-semibold text-ink hover:bg-flamingo-bright">
-            Continue
+            {t.common.continue}
           </button>
         </div>
       )}
 
       {step === 2 && (
         <div className="space-y-4">
-          <h2 className="font-display text-2xl text-mint">A quick safety note</h2>
+          <h2 className="font-display text-2xl text-mint">{o.safetyTitle}</h2>
+          {locale !== "en" && <p className="text-xs text-foreground/60">{o.waiverEnglishNote}</p>}
           <div className="max-h-56 overflow-y-auto whitespace-pre-line rounded-xl border border-line bg-surface-2 p-4 text-sm text-foreground/80">
             {WAIVER_TEXT}
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground/80">Type your full name to sign</label>
+            <label className="block text-sm font-medium text-foreground/80">{o.signName}</label>
             <input
               value={signedName}
               onChange={(e) => setSignedName(e.target.value)}
@@ -266,10 +262,10 @@ export default function OnboardingPage() {
           </div>
           <label className="flex items-start gap-2 text-sm text-foreground/80">
             <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1" />
-            <span>I&apos;ve read this and understand it applies to every class I take or teach here.</span>
+            <span>{o.agree}</span>
           </label>
           <button onClick={signWaiver} className="w-full rounded-full bg-flamingo px-4 py-2.5 font-semibold text-ink hover:bg-flamingo-bright">
-            Sign and continue
+            {o.signContinue}
           </button>
         </div>
       )}
@@ -278,14 +274,12 @@ export default function OnboardingPage() {
 
       {step === 4 && (
         <div className="space-y-5 text-center">
-          <h2 className="font-display text-2xl text-mint">You&apos;re all set, {status.name.split(" ")[0]}</h2>
+          <h2 className="font-display text-2xl text-mint">{fmt(o.doneTitle, { name: status.name.split(" ")[0] })}</h2>
           <p className="text-sm text-foreground/70">
-            {isInstructor
-              ? "Head to your dashboard to upload a certificate and publish your first class."
-              : "Head over to browse classes and find something that fits your day."}
+            {isInstructor ? o.doneInstructor : o.doneClient}
           </p>
           <button onClick={finish} className="w-full rounded-full bg-flamingo px-4 py-2.5 font-semibold text-ink hover:bg-flamingo-bright">
-            {isInstructor ? "Go to my dashboard" : "Browse classes"}
+            {isInstructor ? o.goDashboard : o.browseClasses}
           </button>
         </div>
       )}
