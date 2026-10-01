@@ -121,19 +121,20 @@ classes, going available, and payment collection all stay in a friendly "coming 
 
 ## Ads & other revenue streams
 
-There's one reserved, opt-in ad placement on the browse page (`src/components/AdSlot.tsx`, controlled by
-`NEXT_PUBLIC_AD_SLOT_BROWSE_IMAGE_URL` / `_LINK_URL`). It renders nothing at all when unset — not a
-placeholder box — so it's genuinely non-intrusive until there's a real ad to show. No ad network is wired up;
-this is just the reserved slot in the layout.
+- **Ad bar** (`src/components/AdBar.tsx`): slim banners labeled "Sponsored" on the home, browse, and store
+  pages. Admins upload them in the admin dashboard (image, link, where it shows, on/off); one random active ad
+  shows per placement, and nothing renders when there isn't one. No ad network is wired up.
+- **Store** (`/store`): curated affiliate products in three tiers (Luxe / Everyday / Budget-friendly) with
+  hashtag filters, managed in the admin dashboard. Products link out to the retailer, who sells and ships them;
+  links carry `rel="sponsored"` and the page shows an affiliate disclosure.
 
-The idea of ads (and merch store revenue, below) feeding into the same eventual instructor profit-sharing pool
+The idea of ads (and store affiliate revenue) feeding into the same eventual instructor profit-sharing pool
 as commission revenue is still just that — an idea, not implemented. See "Business model & governance."
 
 ## Not yet built (roadmap)
 
-- **Merchandise store** (mats, tai chi/yoga gear, etc.) — a separate product catalog, cart, and checkout flow.
-  Not started; would live alongside the booking flow as its own module.
-- Actual ad network integration (see "Ads & other revenue streams" above — only the placement is reserved).
+- Our own merchandise with a cart and checkout (the current store is affiliate links only).
+- Ad network integration (ads are uploaded manually by admins for now).
 - Charging clients and splitting payouts to instructors (see "Payments" above).
 - Actual video recording capture (see "Recordings" above).
 - Cooperative governance/voting tooling — deliberately deferred; see "Business model & governance."
@@ -152,4 +153,4 @@ as commission revenue is still just that — an idea, not implemented. See "Busi
 - `src/app/(pages)` — `/`, `/browse`, `/about`, `/guidelines`, `/login`, `/signup`, `/onboarding`,
   `/dashboard/{client,instructor,admin}`, `/room/[id]`
 - `src/components/` — `PalmTreeLogo.tsx` (the one-tree mark used in the nav bar and onboarding),
-  `WelcomeVideo.tsx`, `AdSlot.tsx`, `OnboardingBanner.tsx`, `onboarding/PaymentMethodStep.tsx`
+  `WelcomeVideo.tsx`, `AdBar.tsx`, `OnboardingBanner.tsx`, `onboarding/PaymentMethodStep.tsx`
