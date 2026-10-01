@@ -1,5 +1,6 @@
 "use client";
 
+import ClientProfileForm from "@/components/ClientProfileForm";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CANCELLATION_WINDOW_HOURS } from "@/lib/legal";
@@ -30,6 +31,10 @@ const STATUS_STYLES: Record<Booking["status"], string> = {
   COMPLETED: "bg-surface-2 text-foreground/60",
 };
 
+function hoursUntil(iso: string) {
+  return (new Date(iso).getTime() - Date.now()) / 3_600_000;
+}
+
 export default function ClientDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +55,7 @@ export default function ClientDashboard() {
 
   async function cancelBooking(b: Booking) {
     setMessage(null);
-    const hoursUntilStart = (new Date(b.classSession.startTime).getTime() - Date.now()) / 3_600_000;
+    const hoursUntilStart = hoursUntil(b.classSession.startTime);
     const lateCancel = b.status === "ACCEPTED" && hoursUntilStart < CANCELLATION_WINDOW_HOURS;
     const prompt = lateCancel
       ? `This class starts in less than ${CANCELLATION_WINDOW_HOURS} hours, so cancelling now won't be refunded. Cancel anyway?`
@@ -137,6 +142,10 @@ export default function ClientDashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-10">
+        <ClientProfileForm />
       </div>
     </main>
   );

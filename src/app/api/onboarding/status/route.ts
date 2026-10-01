@@ -20,8 +20,10 @@ export async function GET() {
   const waiverSigned = await hasSignedCurrentWaiver(user.id);
 
   return NextResponse.json({
+    id: user.id,
     role: user.role,
     name: user.name,
+    hasPhoto: Boolean(user.photoPath),
     phone: user.phone,
     preferredLanguageId: user.preferredLanguageId,
     onboardingCompletedAt: user.onboardingCompletedAt,

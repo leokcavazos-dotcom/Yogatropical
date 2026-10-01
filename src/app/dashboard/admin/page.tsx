@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { CERTIFICATION_KINDS, type CertificationKindKey } from "@/lib/profileOptions";
 
 interface PendingCertification {
   id: string;
+  kind: CertificationKindKey;
   fileName: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
   submittedAt: string;
@@ -84,7 +86,8 @@ export default function AdminDashboard() {
           {pending.map((c) => (
             <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-surface-2 px-3 py-2 text-sm">
               <span>
-                {c.instructorProfile.user.name} ({c.instructorProfile.user.email}) — {c.fileName}
+                {c.instructorProfile.user.name} ({c.instructorProfile.user.email}) —{" "}
+                <span className="font-semibold">{CERTIFICATION_KINDS[c.kind]}</span>: {c.fileName}
               </span>
               <span className="flex gap-2">
                 <a

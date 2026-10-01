@@ -4,6 +4,12 @@ import { validateMinimumPrice, isAllowedDuration, calculateCommission } from "@/
 import { hasSignedCurrentWaiver } from "@/lib/onboarding";
 import { isPaymentsConfigured, getStripeClient } from "@/lib/stripe";
 import { CANCELLATION_WINDOW_HOURS } from "@/lib/legal";
+import {
+  hasProfilePhoto,
+  hasApprovedInsurance,
+  PHOTO_REQUIRED_MESSAGE,
+  INSURANCE_REQUIRED_MESSAGE,
+} from "@/lib/profileAccess";
 
 const WAIVER_REQUIRED_MESSAGE = "Please finish onboarding and sign the safety waiver first.";
 
@@ -35,6 +41,9 @@ export async function createScheduledClass(input: CreateScheduledClassInput) {
   if (isPaymentsConfigured() && !profile.payoutsEnabled) {
     throw new ClassSessionError("Connect your Stripe account before publishing classes, so you can get paid.");
   }
+  if (!(await hasProfilePhoto(input.instructorId))) {
+    throw new ClassSessionError(PHOTO_REQUIRED_MESSAGE);
+  }
   if (!isAllowedDuration(input.durationMinutes)) {
     throw new ClassSessionError("Class length must be one of 20, 40, 60, 80, 100, or 120 minutes.");
   }
@@ -57,6 +66,9 @@ export async function createScheduledClass(input: CreateScheduledClassInput) {
     throw new ClassSessionError("Add the address where this in-person class will happen.");
   }
 
+  if (deliveryMethod === "IN_PERSON" && !(await hasApprovedInsurance(profile.id))) {
+    throw new ClassSessionError(INSURANCE_REQUIRED_MESSAGE);
+  }
   if (deliveryMethod === "IN_PERSON" && !profile.country) {
     throw new ClassSessionError(
       "Set the country where you teach in person (under In-person availability) before publishing an in-person class.",
@@ -135,6 +147,9 @@ export async function requestInPersonSession(
     throw new ClassSessionError("This instructor hasn't finished setting up payouts yet.");
   }
   if (!profile.offersInPerson) throw new ClassSessionError("This instructor doesn't offer in-person sessions.");
+  if (!(await hasApprovedInsurance(profile.id))) {
+    throw new ClassSessionError("This instructor's insurance hasn't been verified yet, so they can't take in-person bookings.");
+  }
   if (!profile.inPersonDurationMinutes || !profile.inPersonPricePerStudent) {
     throw new ClassSessionError("This instructor hasn't finished setting up their in-person pricing yet.");
   }

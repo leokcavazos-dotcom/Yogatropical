@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import AdSlot from "@/components/AdSlot";
+import Avatar from "@/components/Avatar";
 import { findCountry } from "@/lib/countries";
 
 interface Specialty {
@@ -52,6 +53,15 @@ interface InPersonInstructor {
 }
 
 const DURATIONS = [20, 40, 60, 80, 100, 120];
+
+function InstructorHeading({ id, name }: { id: string; name: string }) {
+  return (
+    <Link href={`/instructors/${id}`} className="mb-2 flex items-center gap-3 hover:text-flamingo">
+      <Avatar userId={id} name={name} />
+      <span className="font-semibold text-foreground underline-offset-2 hover:underline">{name}</span>
+    </Link>
+  );
+}
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -172,7 +182,7 @@ export default function BrowsePage() {
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {onDemand.map((inst) => (
               <div key={inst.id} className="rounded-xl bg-surface p-4 shadow-sm">
-                <p className="font-semibold text-foreground">{inst.user.name}</p>
+                <InstructorHeading id={inst.user.id} name={inst.user.name} />
                 <p className="text-xs text-foreground/60">
                   {inst.specialties.map((s) => s.name).join(", ") || "General practice"} ·{" "}
                   {inst.languages.map((l) => l.name).join(", ") || "Language not set"}
@@ -204,7 +214,7 @@ export default function BrowsePage() {
               const form = inPersonForms[inst.user.id] ?? { date: "", time: "", address: "" };
               return (
                 <div key={inst.id} className="rounded-xl bg-surface p-4 shadow-sm">
-                  <p className="font-semibold text-foreground">{inst.user.name}</p>
+                  <InstructorHeading id={inst.user.id} name={inst.user.name} />
                   <p className="text-xs text-foreground/60">
                     {inst.specialties.map((s) => s.name).join(", ") || "General practice"} ·{" "}
                     {inst.languages.map((l) => l.name).join(", ") || "Language not set"}
@@ -342,7 +352,11 @@ export default function BrowsePage() {
                 <div>
                   <h3 className="font-display text-lg text-foreground">{c.title}</h3>
                   <p className="text-sm text-foreground/60">
-                    with {c.instructor.name} · {new Date(c.startTime).toLocaleString()} · {c.durationMinutes} min
+                    with{" "}
+                    <Link href={`/instructors/${c.instructor.id}`} className="underline hover:text-flamingo">
+                      {c.instructor.name}
+                    </Link>{" "}
+                    · {new Date(c.startTime).toLocaleString()} · {c.durationMinutes} min
                   </p>
                   <p className="mt-1 text-xs text-foreground/60">
                     {c.specialties.map((s) => s.name).join(", ")} ·{" "}

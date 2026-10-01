@@ -46,6 +46,12 @@ enum CertificationStatus {
   REJECTED
 }
 
+enum CertificationKind {
+  TEACHING
+  CPR
+  INSURANCE
+}
+
 enum RecordingStatus {
   NOT_RECORDED
   RECORDING
@@ -67,9 +73,11 @@ model User {
   preferredLanguageId String?
   preferredLanguage Language?         @relation("UserPreferredLanguage", fields: [preferredLanguageId], references: [id])
   stripeCustomerId  String?
+  photoPath         String?
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   instructorProfile InstructorProfile?
+  clientProfile     ClientProfile?
   classSessions     ClassSession[]    @relation("InstructorSessions")
   enrollments       Enrollment[]      @relation("ClientEnrollments")
   reviewedCertifications Certification[] @relation("CertificationReviewer")
@@ -93,6 +101,10 @@ model InstructorProfile {
   userId                  String       @unique
   user                    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   bio                     String       @default("")
+  whyITeach               String       @default("")
+  ageGroups               String[]     @default([])
+  specialPopulations      String[]     @default([])
+  maxStudents             Int?
   isAvailableOnDemand     Boolean      @default(false)
   onDemandDurationMinutes Int?
   onDemandCapacity        Int?
@@ -114,10 +126,30 @@ model InstructorProfile {
   updatedAt               DateTime     @updatedAt
 }
 
+// Private: visible only to the client, admins, and instructors the client
+// has requested or booked (see src/lib/profileAccess.ts).
+model ClientProfile {
+  id                  String     @id @default(cuid())
+  userId              String     @unique
+  user                User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aboutMe             String     @default("")
+  whatBringsYou       String     @default("")
+  ageRange            String?
+  notesForInstructors String     @default("")
+  prefersVirtual      Boolean    @default(true)
+  prefersInPerson     Boolean    @default(false)
+  country             String?
+  area                String?
+  languages           Language[] @relation("ClientLanguages")
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
 model Certification {
   id                  String              @id @default(cuid())
   instructorProfileId String
   instructorProfile   InstructorProfile   @relation(fields: [instructorProfileId], references: [id], onDelete: Cascade)
+  kind                CertificationKind   @default(TEACHING)
   fileName            String
   storagePath         String
   status              CertificationStatus @default(PENDING)
@@ -143,6 +175,7 @@ model Language {
   instructors     InstructorProfile[] @relation("InstructorLanguages")
   classSessions   ClassSession[]      @relation("ClassLanguages")
   preferringUsers User[]              @relation("UserPreferredLanguage")
+  clients         ClientProfile[]     @relation("ClientLanguages")
 }
 
 model ClassSession {
