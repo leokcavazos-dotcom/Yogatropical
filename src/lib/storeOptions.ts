@@ -13,6 +13,3 @@ export const AD_PLACEMENTS = {
   STORE: "Store",
 } as const;
 export type AdPlacementKey = keyof typeof AD_PLACEMENTS;
-
-export const AFFILIATE_DISCLOSURE =
-  "We may earn a small commission when you buy through these links, at no extra cost to you. It helps keep classes affordable. Products are sold and shipped by the retailer.";

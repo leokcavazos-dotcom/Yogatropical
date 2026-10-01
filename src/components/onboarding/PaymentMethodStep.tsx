@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { useI18n } from "@/i18n/client";
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 let stripePromise: Promise<Stripe | null> | null = null;
@@ -11,6 +12,7 @@ if (publishableKey) {
 }
 
 function CardSetupForm({ clientSecret, onDone }: { clientSecret: string; onDone: () => void }) {
+  const { t } = useI18n();
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ function CardSetupForm({ clientSecret, onDone }: { clientSecret: string; onDone:
     });
     if (result.error) {
       setSubmitting(false);
-      setError(result.error.message ?? "Couldn't save that card.");
+      setError(result.error.message ?? t.payment.cardError);
       return;
     }
     const paymentMethodId =
@@ -55,7 +57,7 @@ function CardSetupForm({ clientSecret, onDone }: { clientSecret: string; onDone:
         disabled={!stripe || submitting}
         className="w-full rounded-full bg-flamingo px-4 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright disabled:opacity-60"
       >
-        {submitting ? "Saving…" : "Save payment method"}
+        {submitting ? t.payment.saving : t.payment.saveCard}
       </button>
     </form>
   );
@@ -68,6 +70,7 @@ interface ConnectStatus {
 }
 
 function InstructorConnectStep({ onSkip }: { onSkip: () => void }) {
+  const { t } = useI18n();
   const [status, setStatus] = useState<ConnectStatus | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -85,7 +88,7 @@ function InstructorConnectStep({ onSkip }: { onSkip: () => void }) {
     const body = await res.json().catch(() => ({}));
     setLoading(false);
     if (!res.ok || !body.url) {
-      setMessage(body.error ?? "Couldn't start Stripe setup.");
+      setMessage(body.error ?? t.payment.connectError);
       return;
     }
     window.location.href = body.url;
@@ -93,24 +96,17 @@ function InstructorConnectStep({ onSkip }: { onSkip: () => void }) {
 
   return (
     <div>
-      <h2 className="font-display text-2xl text-mint">Connect your Stripe account</h2>
-      <p className="mt-2 text-sm text-foreground/70">
-        This is how your teaching payouts reach you — Stripe handles a quick verification, then pays you
-        automatically for every class, right after your commission is taken out. Not required to start setting
-        your availability.
-      </p>
+      <h2 className="font-display text-2xl text-mint">{t.payment.connectTitle}</h2>
+      <p className="mt-2 text-sm text-foreground/70">{t.payment.connectBody}</p>
 
-      {status === null && <p className="mt-4 text-sm text-foreground/60">Loading…</p>}
+      {status === null && <p className="mt-4 text-sm text-foreground/60">{t.common.loading}</p>}
 
       {status?.configured === false && (
-        <p className="mt-4 text-sm text-foreground/70">
-          Payouts aren&apos;t live yet — you can set up your profile and certification right away. We&apos;ll let
-          you know as soon as it&apos;s time to connect Stripe.
-        </p>
+        <p className="mt-4 text-sm text-foreground/70">{t.payment.payoutsNotLive}</p>
       )}
 
       {status?.configured && status.payoutsEnabled && (
-        <p className="mt-4 text-sm text-mint">Your Stripe account is connected and ready for payouts.</p>
+        <p className="mt-4 text-sm text-mint">{t.payment.connected}</p>
       )}
 
       {status?.configured && !status.payoutsEnabled && (
@@ -121,7 +117,7 @@ function InstructorConnectStep({ onSkip }: { onSkip: () => void }) {
             disabled={loading}
             className="mt-4 w-full rounded-full bg-mint px-4 py-2 text-sm font-semibold text-ink hover:bg-mint-bright disabled:opacity-60"
           >
-            {loading ? "One moment…" : status.connected ? "Finish connecting Stripe" : "Connect your Stripe account"}
+            {loading ? t.payment.oneMoment : status.connected ? t.payment.finishConnecting : t.payment.connect}
           </button>
         </>
       )}
@@ -130,7 +126,7 @@ function InstructorConnectStep({ onSkip }: { onSkip: () => void }) {
         onClick={onSkip}
         className="mt-4 w-full rounded-full border border-line px-4 py-2 text-sm font-semibold text-foreground/70 hover:bg-surface-2"
       >
-        Continue
+        {t.common.continue}
       </button>
     </div>
   );
@@ -142,6 +138,7 @@ interface PaymentMethodStepProps {
 }
 
 export default function PaymentMethodStep({ role, onSkip }: PaymentMethodStepProps) {
+  const { t } = useI18n();
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -168,26 +165,23 @@ export default function PaymentMethodStep({ role, onSkip }: PaymentMethodStepPro
 
   return (
     <div>
-      <h2 className="font-display text-2xl text-mint">Add a payment method</h2>
-      {configured === null && <p className="mt-3 text-sm text-foreground/60">Loading…</p>}
+      <h2 className="font-display text-2xl text-mint">{t.payment.addTitle}</h2>
+      {configured === null && <p className="mt-3 text-sm text-foreground/60">{t.common.loading}</p>}
 
       {configured === false && (
         <>
-          <p className="mt-3 text-sm text-foreground/70">
-            Payment collection isn&apos;t live yet — you can browse and request classes right away. We&apos;ll
-            let you know as soon as it&apos;s time to add a card.
-          </p>
+          <p className="mt-3 text-sm text-foreground/70">{t.payment.notLive}</p>
           <button onClick={onSkip} className="mt-4 w-full rounded-full bg-flamingo px-4 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright">
-            Continue
+            {t.common.continue}
           </button>
         </>
       )}
 
       {configured && saved && (
         <>
-          <p className="mt-3 text-sm text-mint">Payment method saved. You&apos;re all set.</p>
+          <p className="mt-3 text-sm text-mint">{t.payment.saved}</p>
           <button onClick={onSkip} className="mt-4 w-full rounded-full bg-flamingo px-4 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright">
-            Continue
+            {t.common.continue}
           </button>
         </>
       )}
@@ -198,7 +192,7 @@ export default function PaymentMethodStep({ role, onSkip }: PaymentMethodStepPro
             <CardSetupForm clientSecret={clientSecret} onDone={() => setSaved(true)} />
           </Elements>
           <button onClick={onSkip} className="mt-3 w-full text-center text-xs text-foreground/50 underline">
-            Skip for now
+            {t.payment.skip}
           </button>
         </div>
       )}

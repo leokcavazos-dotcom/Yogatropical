@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { AdPlacementKey } from "@/lib/storeOptions";
+import { useI18n } from "@/i18n/client";
 
 interface Ad {
   id: string;
@@ -16,6 +17,7 @@ interface Ad {
  * when there isn't one.
  */
 export default function AdBar({ placement, className = "" }: { placement: AdPlacementKey; className?: string }) {
+  const { t } = useI18n();
   const [ad, setAd] = useState<Ad | null>(null);
 
   useEffect(() => {
@@ -28,8 +30,8 @@ export default function AdBar({ placement, className = "" }: { placement: AdPlac
   if (!ad) return null;
 
   return (
-    <aside aria-label="Sponsored" className={`mx-auto w-full max-w-3xl ${className}`}>
-      <p className="mb-1 text-center text-[10px] uppercase tracking-widest text-foreground/40">Sponsored</p>
+    <aside aria-label={t.common.sponsored} className={`mx-auto w-full max-w-3xl ${className}`}>
+      <p className="mb-1 text-center text-[10px] uppercase tracking-widest text-foreground/40">{t.common.sponsored}</p>
       <a
         href={ad.linkUrl}
         target="_blank"

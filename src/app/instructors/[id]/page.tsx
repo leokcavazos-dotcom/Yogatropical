@@ -3,8 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { findCountry } from "@/lib/countries";
-import { CERTIFICATION_KINDS } from "@/lib/profileOptions";
+import { countryName } from "@/lib/countries";
+import { getI18n } from "@/i18n/server";
+import { fmt, label } from "@/i18n/config";
 import Avatar from "@/components/Avatar";
 import LocalTime from "@/components/LocalTime";
 
@@ -41,8 +42,8 @@ async function loadInstructor(id: string) {
 
 export async function generateMetadata({ params }: PageProps<"/instructors/[id]">): Promise<Metadata> {
   const { id } = await params;
-  const instructor = await loadInstructor(id);
-  return { title: instructor ? `${instructor.name} — Yoga Tropical` : "Instructor — Yoga Tropical" };
+  const [instructor, { t }] = await Promise.all([loadInstructor(id), getI18n()]);
+  return { title: fmt(t.instructorPage.metaTitle, { name: instructor?.name ?? "Yoga Tropical" }) };
 }
 
 function Chips({ items, tone }: { items: string[]; tone: "flamingo" | "mint" }) {
@@ -60,7 +61,8 @@ function Chips({ items, tone }: { items: string[]; tone: "flamingo" | "mint" }) 
 
 export default async function InstructorProfilePage({ params }: PageProps<"/instructors/[id]">) {
   const { id } = await params;
-  const [instructor, session] = await Promise.all([loadInstructor(id), auth()]);
+  const [instructor, session, { locale, t }] = await Promise.all([loadInstructor(id), auth(), getI18n()]);
+  const ip = t.instructorPage;
   const profile = instructor?.instructorProfile;
   if (!instructor || !profile) notFound();
 
@@ -72,11 +74,11 @@ export default async function InstructorProfilePage({ params }: PageProps<"/inst
   const approvedKinds = new Set(profile.certifications.map((c) => c.kind));
   const viewableDocs = profile.certifications.filter((c) => c.kind !== "INSURANCE");
   const badges = [
-    profile.isCertified && "✓ Verified certificate",
-    approvedKinds.has("CPR") && "✓ CPR / First aid",
-    approvedKinds.has("INSURANCE") && "✓ Insured",
+    profile.isCertified && ip.verified,
+    approvedKinds.has("CPR") && ip.cpr,
+    approvedKinds.has("INSURANCE") && ip.insured,
   ].filter(Boolean) as string[];
-  const inPersonWhere = [profile.travelServiceArea, findCountry(profile.country)?.name].filter(Boolean).join(", ");
+  const inPersonWhere = [profile.travelServiceArea, countryName(profile.country, locale)].filter(Boolean).join(", ");
 
   const upcoming = await prisma.classSession.findMany({
     where: { instructorId: instructor.id, mode: "SCHEDULED", status: "OPEN", startTime: { gte: new Date() } },
@@ -89,7 +91,7 @@ export default async function InstructorProfilePage({ params }: PageProps<"/inst
     <main className="mx-auto max-w-3xl px-4 py-12">
       {!profile.isCertified && (
         <p className="mb-6 rounded-lg bg-sunset/15 px-4 py-2 text-sm text-sunset">
-          Preview — this profile goes public once a teaching certificate is approved.
+          {ip.preview}
         </p>
       )}
 
@@ -107,89 +109,93 @@ export default async function InstructorProfilePage({ params }: PageProps<"/inst
             </div>
           )}
           <p className="mt-3 text-sm text-foreground/70">
-            Teaches: Virtual{profile.offersInPerson && inPersonWhere ? ` · In person in ${inPersonWhere}` : ""}
-            {profile.maxStudents ? ` · Up to ${profile.maxStudents} students per class` : ""}
+            {ip.teaches}
+            {profile.offersInPerson && inPersonWhere ? fmt(ip.inPersonIn, { where: inPersonWhere }) : ""}
+            {profile.maxStudents ? fmt(ip.upToStudents, { n: profile.maxStudents }) : ""}
           </p>
         </div>
       </div>
 
       {profile.specialties.length > 0 && (
         <section className="mt-10">
-          <h2 className="font-display text-xl text-flamingo">Specialties</h2>
+          <h2 className="font-display text-xl text-flamingo">{ip.specialties}</h2>
           <Chips items={profile.specialties.map((s) => s.name)} tone="flamingo" />
         </section>
       )}
       {profile.languages.length > 0 && (
         <section className="mt-8">
-          <h2 className="font-display text-xl text-flamingo">Languages</h2>
+          <h2 className="font-display text-xl text-flamingo">{ip.languages}</h2>
           <Chips items={profile.languages.map((l) => l.name)} tone="mint" />
         </section>
       )}
       {(profile.ageGroups.length > 0 || profile.specialPopulations.length > 0) && (
         <section className="mt-8">
-          <h2 className="font-display text-xl text-flamingo">Who I work with</h2>
-          {profile.ageGroups.length > 0 && <Chips items={profile.ageGroups} tone="mint" />}
-          {profile.specialPopulations.length > 0 && <Chips items={profile.specialPopulations} tone="flamingo" />}
+          <h2 className="font-display text-xl text-flamingo">{ip.whoIWorkWith}</h2>
+          {profile.ageGroups.length > 0 && <Chips items={profile.ageGroups.map((g) => label(t.options.ageGroups, g))} tone="mint" />}
+          {profile.specialPopulations.length > 0 && (
+            <Chips items={profile.specialPopulations.map((p) => label(t.options.specialPopulations, p))} tone="flamingo" />
+          )}
         </section>
       )}
       {profile.whyITeach && (
         <section className="mt-8">
-          <h2 className="font-display text-xl text-flamingo">Why I share my practice</h2>
+          <h2 className="font-display text-xl text-flamingo">{ip.whyIShare}</h2>
           <p className="mt-2 whitespace-pre-line leading-relaxed text-foreground/90">{profile.whyITeach}</p>
         </section>
       )}
       {profile.bio && (
         <section className="mt-8">
-          <h2 className="font-display text-xl text-flamingo">About me</h2>
+          <h2 className="font-display text-xl text-flamingo">{ip.aboutMe}</h2>
           <p className="mt-2 whitespace-pre-line leading-relaxed text-foreground/90">{profile.bio}</p>
         </section>
       )}
 
       <section className="mt-8">
-        <h2 className="font-display text-xl text-flamingo">Certificates</h2>
+        <h2 className="font-display text-xl text-flamingo">{ip.certificates}</h2>
         {viewableDocs.length === 0 ? (
-          <p className="mt-2 text-sm text-foreground/60">No approved certificates yet.</p>
+          <p className="mt-2 text-sm text-foreground/60">{ip.noCertificates}</p>
         ) : session ? (
           <ul className="mt-2 space-y-2">
             {viewableDocs.map((c) => (
               <li key={c.id} className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2 text-sm">
-                <span>{CERTIFICATION_KINDS[c.kind]}</span>
+                <span>{label(ip.certKinds, c.kind)}</span>
                 <a href={`/api/certifications/${c.id}/file`} target="_blank" rel="noreferrer" className="text-mint underline hover:text-mint-bright">
-                  View
+                  {ip.view}
                 </a>
               </li>
             ))}
           </ul>
         ) : (
           <p className="mt-2 text-sm text-foreground/70">
-            {viewableDocs.length} verified document{viewableDocs.length === 1 ? "" : "s"}.{" "}
+            {fmt(ip.verifiedDocs, { n: viewableDocs.length })}{" "}
             <Link href="/login" className="underline hover:text-flamingo">
-              Sign in
+              {ip.signIn}
             </Link>{" "}
-            to view them.
+            {ip.signInToView}
           </p>
         )}
       </section>
 
       <section className="mt-8">
-        <h2 className="font-display text-xl text-flamingo">Upcoming classes</h2>
+        <h2 className="font-display text-xl text-flamingo">{ip.upcoming}</h2>
         {upcoming.length === 0 ? (
           <p className="mt-2 text-sm text-foreground/60">
-            No scheduled classes right now.
-            {profile.isAvailableOnDemand || profile.offersInPerson ? " You can still book them from the Browse page." : ""}
+            {ip.noUpcoming}
+            {profile.isAvailableOnDemand || profile.offersInPerson ? ip.bookFromBrowse : ""}
           </p>
         ) : (
           <ul className="mt-2 space-y-2">
             {upcoming.map((c) => (
               <li key={c.id} className="rounded-lg bg-surface-2 px-3 py-2 text-sm">
                 <span className="font-semibold">{c.title}</span> · <LocalTime iso={c.startTime.toISOString()} /> ·{" "}
-                {c.durationMinutes} min · {c.deliveryMethod === "IN_PERSON" ? "In person" : "Virtual"} · ${c.pricePerStudent.toFixed(2)}
+                {fmt(t.common.minutes, { n: c.durationMinutes })} · {c.deliveryMethod === "IN_PERSON" ? t.common.inPerson : t.common.virtual} · $
+                {c.pricePerStudent.toFixed(2)}
               </li>
             ))}
           </ul>
         )}
         <Link href="/browse" className="mt-4 inline-block rounded-full bg-flamingo px-5 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright">
-          Browse & book classes
+          {ip.browseBook}
         </Link>
       </section>
     </main>
