@@ -1,4 +1,5 @@
 import { LEGAL } from "@/lib/legal";
+import LegalNotice from "@/components/LegalNotice";
 
 // A paragraph is a string; a nested string array renders as a bulleted list.
 export type LegalBlock = string | string[];
@@ -16,7 +17,8 @@ interface LegalPageProps {
 
 export default function LegalPage({ title, intro, sections }: LegalPageProps) {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12">
+    <main lang="en" className="mx-auto max-w-3xl px-4 py-12">
+      <LegalNotice />
       <h1 className="font-display text-4xl text-mint">{title}</h1>
       <p className="mt-2 text-sm text-foreground/60">Last updated: {LEGAL.effectiveDate}</p>
       {intro.map((paragraph) => (

@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { PRODUCT_TIERS, AFFILIATE_DISCLOSURE, type ProductTierKey } from "@/lib/storeOptions";
+import { PRODUCT_TIERS, type ProductTierKey } from "@/lib/storeOptions";
 import AdBar from "@/components/AdBar";
+import { getI18n } from "@/i18n/server";
+import { fmt, label } from "@/i18n/config";
 
-export const metadata: Metadata = {
-  title: "Store — Yoga Tropical",
-  description: "Curated yoga and wellness gear in three price tiers, shipped straight from trusted retailers.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.store.metaTitle, description: t.store.intro };
+}
 
 function storeHref(tier: string | undefined, tag: string | undefined) {
   const params = new URLSearchParams();
@@ -18,7 +20,8 @@ function storeHref(tier: string | undefined, tag: string | undefined) {
 }
 
 export default async function StorePage({ searchParams }: PageProps<"/store">) {
-  const params = await searchParams;
+  const [params, { t }] = await Promise.all([searchParams, getI18n()]);
+  const st = t.store;
   const tierParam = typeof params.tier === "string" ? params.tier : undefined;
   const tier = tierParam && tierParam in PRODUCT_TIERS ? (tierParam as ProductTierKey) : undefined;
   const tag = typeof params.tag === "string" ? params.tag : undefined;
@@ -31,17 +34,17 @@ export default async function StorePage({ searchParams }: PageProps<"/store">) {
   const allTags = [...new Set(inTier.flatMap((p) => p.tags))].sort();
   const products = tag ? inTier.filter((p) => p.tags.includes(tag)) : inTier;
 
-  const tabs: [string | undefined, string][] = [[undefined, "All"], ...Object.entries(PRODUCT_TIERS)];
+  const tabs: [string | undefined, string][] = [
+    [undefined, st.all],
+    ...Object.keys(PRODUCT_TIERS).map((key): [string, string] => [key, label(st.tiers, key)]),
+  ];
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="font-display text-4xl text-mint">The Tropical Shop</h1>
-      <p className="mt-3 max-w-2xl text-foreground/80">
-        Mats, props, and wellness gear we&apos;d actually use — hand-picked in three price tiers, shipped straight to
-        you from retailers around the world.
-      </p>
+      <h1 className="font-display text-4xl text-mint">{st.title}</h1>
+      <p className="mt-3 max-w-2xl text-foreground/80">{st.intro}</p>
 
-      <nav className="mt-6 flex flex-wrap gap-2" aria-label="Price tier">
+      <nav className="mt-6 flex flex-wrap gap-2" aria-label={st.tierLabel}>
         {tabs.map(([key, label]) => (
           <Link
             key={label}
@@ -56,7 +59,7 @@ export default async function StorePage({ searchParams }: PageProps<"/store">) {
       </nav>
 
       {allTags.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2" aria-label="Filter by tag">
+        <div className="mt-3 flex flex-wrap gap-2" aria-label={st.tagLabel}>
           {allTags.map((t) => (
             <Link
               key={t}
@@ -75,7 +78,7 @@ export default async function StorePage({ searchParams }: PageProps<"/store">) {
 
       {products.length === 0 ? (
         <p className="mt-10 text-foreground/60">
-          {inTier.length === 0 ? "Our curated picks are coming soon — check back shortly." : "Nothing matches that tag yet."}
+          {inTier.length === 0 ? st.comingSoon : st.noMatch}
         </p>
       ) : (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -90,7 +93,7 @@ export default async function StorePage({ searchParams }: PageProps<"/store">) {
                 </div>
               )}
               <div className="flex flex-1 flex-col p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-sunset">{PRODUCT_TIERS[p.tier]}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-sunset">{label(st.tiers, p.tier)}</p>
                 <h2 className="mt-1 font-display text-lg text-foreground">{p.name}</h2>
                 <p className="text-sm text-foreground/60">
                   {p.retailer}
@@ -106,7 +109,7 @@ export default async function StorePage({ searchParams }: PageProps<"/store">) {
                   rel="sponsored nofollow noopener noreferrer"
                   className="mt-4 self-start rounded-full bg-flamingo px-4 py-1.5 text-sm font-semibold text-ink hover:bg-flamingo-bright"
                 >
-                  Shop at {p.retailer} ↗
+                  {fmt(st.shopAt, { retailer: p.retailer })} ↗
                 </a>
               </div>
             </article>
@@ -114,7 +117,7 @@ export default async function StorePage({ searchParams }: PageProps<"/store">) {
         </div>
       )}
 
-      <p className="mt-12 text-xs text-foreground/50">{AFFILIATE_DISCLOSURE}</p>
+      <p className="mt-12 text-xs text-foreground/50">{st.disclosure}</p>
     </main>
   );
 }

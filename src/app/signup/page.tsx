@@ -4,10 +4,12 @@ import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/i18n/client";
 
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useI18n();
   const initialRole = searchParams.get("role") === "INSTRUCTOR" ? "INSTRUCTOR" : "CLIENT";
 
   const [name, setName] = useState("");
@@ -22,7 +24,7 @@ function SignupForm() {
     e.preventDefault();
     setError(null);
     if (!acceptedTerms) {
-      setError("Please confirm you're 18 or older and agree to the terms.");
+      setError(t.auth.mustAgreeTerms);
       return;
     }
     setLoading(true);
@@ -33,7 +35,7 @@ function SignupForm() {
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "Something went wrong creating your account.");
+      setError(body.error ?? t.auth.signupError);
       setLoading(false);
       return;
     }
@@ -45,7 +47,7 @@ function SignupForm() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-16">
-      <h1 className="font-display text-3xl text-mint">Join Yoga Tropical</h1>
+      <h1 className="font-display text-3xl text-mint">{t.auth.joinTitle}</h1>
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div className="flex gap-2">
           <button
@@ -53,18 +55,18 @@ function SignupForm() {
             onClick={() => setRole("CLIENT")}
             className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold ${role === "CLIENT" ? "border-flamingo bg-flamingo text-ink" : "border-line text-foreground/70"}`}
           >
-            I want to take classes
+            {t.auth.takeClasses}
           </button>
           <button
             type="button"
             onClick={() => setRole("INSTRUCTOR")}
             className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold ${role === "INSTRUCTOR" ? "border-mint bg-mint text-ink" : "border-line text-foreground/70"}`}
           >
-            I want to teach
+            {t.auth.teach}
           </button>
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground/80">Name</label>
+          <label className="block text-sm font-medium text-foreground/80">{t.auth.name}</label>
           <input
             required
             value={name}
@@ -73,7 +75,7 @@ function SignupForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground/80">Email</label>
+          <label className="block text-sm font-medium text-foreground/80">{t.auth.email}</label>
           <input
             type="email"
             required
@@ -83,7 +85,7 @@ function SignupForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground/80">Password</label>
+          <label className="block text-sm font-medium text-foreground/80">{t.auth.password}</label>
           <input
             type="password"
             required
@@ -101,23 +103,23 @@ function SignupForm() {
             className="mt-1"
           />
           <span>
-            I&apos;m 18 or older, and I agree to the{" "}
+            {t.auth.agreeTermsBefore}{" "}
             <Link href="/terms" target="_blank" className="underline hover:text-flamingo">
-              Terms of Service
+              {t.auth.termsLink}
             </Link>{" "}
-            (including arbitration and the class action waiver),{" "}
+            {t.auth.termsNote}{" "}
             <Link href="/privacy" target="_blank" className="underline hover:text-flamingo">
-              Privacy Policy
+              {t.auth.privacyLink}
             </Link>
-            ,{" "}
+            {role === "INSTRUCTOR" ? ", " : ` ${t.auth.and} `}
             <Link href="/guidelines" target="_blank" className="underline hover:text-flamingo">
-              Code of Conduct
+              {t.auth.guidelinesLink}
             </Link>
             {role === "INSTRUCTOR" && (
               <>
-                , and{" "}
+                {` ${t.auth.and} `}
                 <Link href="/instructor-agreement" target="_blank" className="underline hover:text-flamingo">
-                  Instructor Agreement
+                  {t.auth.instructorAgreementLink}
                 </Link>
               </>
             )}
@@ -130,13 +132,13 @@ function SignupForm() {
           disabled={loading}
           className="w-full rounded-full bg-flamingo px-4 py-2 font-semibold text-ink hover:bg-flamingo-bright disabled:opacity-60"
         >
-          {loading ? "Creating account…" : "Create account"}
+          {loading ? t.auth.creatingAccount : t.auth.createAccount}
         </button>
       </form>
       <p className="mt-6 text-sm text-foreground/70">
-        Already have an account?{" "}
+        {t.auth.haveAccount}{" "}
         <Link href="/login" className="underline hover:text-flamingo">
-          Sign in
+          {t.auth.signInLink}
         </Link>
       </p>
     </main>

@@ -131,3 +131,14 @@ const BY_CODE = new Map(COUNTRIES.map((c) => [c.code, c]));
 export function findCountry(code: string | null | undefined): Country | undefined {
   return code ? BY_CODE.get(code) : undefined;
 }
+
+/** A country's name in the given language (falls back to English when the browser/runtime lacks that language). */
+export function countryName(code: string | null | undefined, locale: string): string | undefined {
+  const country = findCountry(code);
+  if (!country) return undefined;
+  try {
+    return new Intl.DisplayNames([locale, "en"], { type: "region" }).of(country.code) ?? country.name;
+  } catch {
+    return country.name;
+  }
+}

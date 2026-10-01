@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { COUNTRIES } from "@/lib/countries";
+import { COUNTRIES, countryName } from "@/lib/countries";
+import { useI18n } from "@/i18n/client";
 import { CLIENT_AGE_RANGES } from "@/lib/profileOptions";
 import PhotoUploader from "@/components/PhotoUploader";
 
@@ -39,6 +40,8 @@ const EMPTY = {
 };
 
 export default function ClientProfileForm() {
+  const { locale, t } = useI18n();
+  const c = t.clientProfile;
   const [data, setData] = useState<ClientProfileResponse | null>(null);
   const [form, setForm] = useState(EMPTY);
   const [allLanguages, setAllLanguages] = useState<Tag[]>([]);
@@ -85,22 +88,26 @@ export default function ClientProfileForm() {
       }),
     });
     const body = await res.json().catch(() => ({}));
-    setMessage(res.ok ? "Profile saved." : body.error ?? "Couldn't save your profile.");
+    setMessage(res.ok ? c.saved : body.error ?? c.saveFailed);
   }
 
   if (!data) return null;
 
+  const countryOptions = COUNTRIES.map((country) => ({
+    code: country.code,
+    name: countryName(country.code, locale) ?? country.name,
+  })).sort((a, b) => a.name.localeCompare(b.name, locale));
+
   return (
     <section className="rounded-2xl border border-line p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-display text-xl text-flamingo">My profile</h2>
+        <h2 className="font-display text-xl text-flamingo">{c.title}</h2>
         <button onClick={() => setOpen(!open)} className="text-sm text-mint underline hover:text-mint-bright">
-          {open ? "Hide" : data.profile ? "Edit" : "Fill it out"}
+          {open ? c.hide : data.profile ? c.edit : c.fillOut}
         </button>
       </div>
       <p className="mt-1 text-xs text-foreground/60">
-        🔒 Private. Only instructors you request or book with (and our small admin team) can see it. Everything is
-        optional — share only what helps an instructor take good care of you.
+        {c.privacy}
       </p>
 
       {open && (
@@ -109,22 +116,22 @@ export default function ClientProfileForm() {
             userId={data.userId}
             name={data.name}
             hasPhoto={data.hasPhoto}
-            note="Optional."
+            note={c.photoOptional}
             onChange={(hasPhoto) => setData({ ...data, hasPhoto })}
           />
 
           <div>
-            <label className="block text-sm font-medium text-foreground/80">What brings you to Yoga Tropical?</label>
+            <label className="block text-sm font-medium text-foreground/80">{c.whatBrings}</label>
             <textarea
               value={form.whatBringsYou}
               onChange={(e) => set("whatBringsYou", e.target.value)}
               rows={2}
-              placeholder="e.g. Staying grounded in early recovery, easing back pain, calming anxiety…"
+              placeholder={c.whatBringsPlaceholder}
               className="mt-1 w-full rounded-lg border border-line px-3 py-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground/80">A little about me</label>
+            <label className="block text-sm font-medium text-foreground/80">{c.aboutMe}</label>
             <textarea
               value={form.aboutMe}
               onChange={(e) => set("aboutMe", e.target.value)}
@@ -133,21 +140,21 @@ export default function ClientProfileForm() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground/80">Anything instructors should know?</label>
+            <label className="block text-sm font-medium text-foreground/80">{c.notes}</label>
             <textarea
               value={form.notesForInstructors}
               onChange={(e) => set("notesForInstructors", e.target.value)}
               rows={2}
-              placeholder="Injuries, limitations, pregnancy, or preferences (like no hands-on adjustments)."
+              placeholder={c.notesPlaceholder}
               className="mt-1 w-full rounded-lg border border-line px-3 py-2"
             />
           </div>
 
           <div className="flex flex-wrap gap-4">
             <div>
-              <label className="block text-xs font-medium text-foreground/70">Age range</label>
+              <label className="block text-xs font-medium text-foreground/70">{c.ageRange}</label>
               <select value={form.ageRange} onChange={(e) => set("ageRange", e.target.value)} className="mt-1 rounded-lg border border-line px-3 py-1.5">
-                <option value="">Prefer not to say</option>
+                <option value="">{c.preferNotToSay}</option>
                 {CLIENT_AGE_RANGES.map((a) => (
                   <option key={a} value={a}>
                     {a}
@@ -156,44 +163,44 @@ export default function ClientProfileForm() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-foreground/70">Country</label>
+              <label className="block text-xs font-medium text-foreground/70">{c.country}</label>
               <select value={form.country} onChange={(e) => set("country", e.target.value)} className="mt-1 rounded-lg border border-line px-3 py-1.5">
-                <option value="">Choose…</option>
-                {COUNTRIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.name}
+                <option value="">{c.choose}</option>
+                {countryOptions.map((country) => (
+                  <option key={country.code} value={country.code}>
+                    {country.name}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-foreground/70">City or area</label>
+              <label className="block text-xs font-medium text-foreground/70">{c.area}</label>
               <input
                 value={form.area}
                 onChange={(e) => set("area", e.target.value)}
                 maxLength={200}
-                placeholder="e.g. Miami"
+                placeholder={c.areaPlaceholder}
                 className="mt-1 rounded-lg border border-line px-3 py-1.5"
               />
             </div>
           </div>
 
           <div>
-            <p className="text-sm font-medium text-foreground/80">I like classes that are…</p>
+            <p className="text-sm font-medium text-foreground/80">{c.likes}</p>
             <div className="mt-2 flex flex-wrap gap-4 text-sm">
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={form.prefersVirtual} onChange={(e) => set("prefersVirtual", e.target.checked)} />
-                Virtual
+                {t.common.virtual}
               </label>
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={form.prefersInPerson} onChange={(e) => set("prefersInPerson", e.target.checked)} />
-                In person
+                {t.common.inPerson}
               </label>
             </div>
           </div>
 
           <div>
-            <p className="text-sm font-medium text-foreground/80">Languages I&apos;m comfortable in</p>
+            <p className="text-sm font-medium text-foreground/80">{c.languages}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {allLanguages.map((l) => {
                 const on = form.languageIds.includes(l.id);
@@ -212,7 +219,7 @@ export default function ClientProfileForm() {
 
           {message && <p className="text-sm text-mint">{message}</p>}
           <button onClick={save} className="rounded-full bg-flamingo px-5 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright">
-            Save profile
+            {c.save}
           </button>
         </div>
       )}

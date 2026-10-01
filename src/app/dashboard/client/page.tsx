@@ -3,6 +3,8 @@
 import ClientProfileForm from "@/components/ClientProfileForm";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useI18n } from "@/i18n/client";
+import { fmt, label } from "@/i18n/config";
 import { CANCELLATION_WINDOW_HOURS } from "@/lib/legal";
 
 interface Booking {
@@ -36,6 +38,8 @@ function hoursUntil(iso: string) {
 }
 
 export default function ClientDashboard() {
+  const { locale, t } = useI18n();
+  const cd = t.clientDashboard;
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -55,16 +59,13 @@ export default function ClientDashboard() {
 
   async function cancelBooking(b: Booking) {
     setMessage(null);
-    const hoursUntilStart = hoursUntil(b.classSession.startTime);
-    const lateCancel = b.status === "ACCEPTED" && hoursUntilStart < CANCELLATION_WINDOW_HOURS;
-    const prompt = lateCancel
-      ? `This class starts in less than ${CANCELLATION_WINDOW_HOURS} hours, so cancelling now won't be refunded. Cancel anyway?`
-      : "Cancel this booking?";
-    if (!window.confirm(prompt)) return;
+    const hours = CANCELLATION_WINDOW_HOURS;
+    const lateCancel = b.status === "ACCEPTED" && hoursUntil(b.classSession.startTime) < hours;
+    if (!window.confirm(lateCancel ? fmt(cd.lateCancel, { hours }) : cd.confirmCancel)) return;
     const res = await fetch(`/api/enrollments/${b.id}`, { method: "DELETE" });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setMessage(body.error ?? "Couldn't cancel that booking.");
+      setMessage(body.error ?? cd.cancelFailed);
     }
     load();
   }
@@ -72,22 +73,22 @@ export default function ClientDashboard() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl text-mint">My bookings</h1>
+        <h1 className="font-display text-3xl text-mint">{cd.title}</h1>
         <Link href="/browse" className="rounded-full bg-flamingo px-4 py-2 text-sm font-semibold text-ink hover:bg-flamingo-bright">
-          Browse classes
+          {cd.browse}
         </Link>
       </div>
 
       <p className="mt-2 text-sm text-foreground/60">
-        Free cancellation until {CANCELLATION_WINDOW_HOURS} hours before class.{" "}
+        {fmt(cd.freeCancellation, { hours: CANCELLATION_WINDOW_HOURS })}{" "}
         <Link href="/terms#section-7" className="underline hover:text-flamingo">
-          Cancellation policy
+          {cd.cancellationPolicy}
         </Link>
       </p>
       {message && <p className="mt-4 rounded-lg bg-red-500/15 px-4 py-2 text-sm text-red-300">{message}</p>}
-      {loading && <p className="mt-6 text-foreground/60">Loading…</p>}
+      {loading && <p className="mt-6 text-foreground/60">{t.common.loading}</p>}
       {!loading && bookings.length === 0 && (
-        <p className="mt-6 text-foreground/60">No bookings yet — go find a class that fits your day.</p>
+        <p className="mt-6 text-foreground/60">{cd.empty}</p>
       )}
 
       <div className="mt-6 space-y-3">
@@ -97,8 +98,9 @@ export default function ClientDashboard() {
               <div>
                 <h3 className="font-display text-lg text-foreground">{b.classSession.title}</h3>
                 <p className="text-sm text-foreground/60">
-                  with {b.classSession.instructor.name} · {new Date(b.classSession.startTime).toLocaleString()} ·{" "}
-                  {b.classSession.durationMinutes} min
+                  {t.browse.with} {b.classSession.instructor.name} ·{" "}
+                  {new Date(b.classSession.startTime).toLocaleString(locale)} ·{" "}
+                  {fmt(t.common.minutes, { n: b.classSession.durationMinutes })}
                 </p>
                 <p className="text-xs text-foreground/60">
                   {b.classSession.specialties.map((s) => s.name).join(", ")} ·{" "}
@@ -106,13 +108,13 @@ export default function ClientDashboard() {
                 </p>
                 <p className="text-xs text-foreground/60">
                   {b.classSession.deliveryMethod === "IN_PERSON"
-                    ? `📍 In-person at ${b.classSession.locationAddress}`
-                    : "💻 Virtual"}
+                    ? fmt(t.browse.inPersonAt, { address: b.classSession.locationAddress ?? "" })
+                    : t.browse.virtualTag}
                 </p>
               </div>
               <div className="text-right">
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[b.status]}`}>
-                  {b.status}
+                  {label(cd.status, b.status)}
                 </span>
                 <p className="mt-1 text-sm font-semibold text-flamingo">${b.priceCharged.toFixed(2)}</p>
               </div>
@@ -123,12 +125,12 @@ export default function ClientDashboard() {
                   href={`/room/${b.classSession.id}`}
                   className="rounded-full bg-mint px-4 py-1.5 text-sm font-semibold text-ink hover:bg-mint-bright"
                 >
-                  Join video room
+                  {cd.joinRoom}
                 </Link>
               )}
               {b.status === "ACCEPTED" && b.classSession.deliveryMethod === "IN_PERSON" && (
                 <p className="text-sm text-foreground/80">
-                  <span className="font-medium">Location:</span> {b.classSession.locationAddress}
+                  <span className="font-medium">{cd.location}</span> {b.classSession.locationAddress}
                 </p>
               )}
               {(b.status === "PENDING" || b.status === "ACCEPTED") && (
@@ -136,7 +138,7 @@ export default function ClientDashboard() {
                   onClick={() => cancelBooking(b)}
                   className="rounded-full border border-line px-4 py-1.5 text-sm text-foreground/70 hover:bg-surface-2"
                 >
-                  Cancel
+                  {cd.cancel}
                 </button>
               )}
             </div>

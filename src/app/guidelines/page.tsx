@@ -1,8 +1,10 @@
 import { WAIVER_TEXT } from "@/lib/waiver";
+import LegalNotice from "@/components/LegalNotice";
 
 export default function GuidelinesPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12">
+    <main lang="en" className="mx-auto max-w-3xl px-4 py-12">
+      <LegalNotice />
       <h1 className="font-display text-4xl text-mint">Code of Conduct</h1>
       <p className="mt-4 leading-relaxed text-foreground/90">
         Classes happen live, on video, with real people showing up as they are. These guidelines keep the space

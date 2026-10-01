@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Avatar from "@/components/Avatar";
+import { useI18n } from "@/i18n/client";
 
 /** Shows the signed-in user's photo with upload / remove controls. */
 export default function PhotoUploader({
@@ -17,6 +18,7 @@ export default function PhotoUploader({
   note: string;
   onChange: (hasPhoto: boolean) => void;
 }) {
+  const { t } = useI18n();
   const [version, setVersion] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export default function PhotoUploader({
     const body = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
-      setError(body.error ?? "Upload failed.");
+      setError(body.error ?? t.photo.uploadFailed);
       return;
     }
     setVersion(Date.now());
@@ -51,7 +53,7 @@ export default function PhotoUploader({
       <Avatar userId={userId} name={name} size="md" version={version} />
       <div className="text-sm">
         <label className="inline-block cursor-pointer rounded-full border border-line px-4 py-1.5 hover:bg-surface-2">
-          {busy ? "Uploading…" : hasPhoto ? "Change photo" : "Upload a photo"}
+          {busy ? t.photo.uploading : hasPhoto ? t.photo.change : t.photo.upload}
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -66,7 +68,7 @@ export default function PhotoUploader({
         </label>
         {hasPhoto && (
           <button type="button" onClick={remove} className="ml-2 text-xs text-foreground/60 underline hover:text-flamingo">
-            Remove
+            {t.photo.remove}
           </button>
         )}
         <p className="mt-1 text-xs text-foreground/60">{note}</p>

@@ -4,7 +4,9 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import AdBar from "@/components/AdBar";
 import Avatar from "@/components/Avatar";
-import { findCountry } from "@/lib/countries";
+import { countryName } from "@/lib/countries";
+import { useI18n } from "@/i18n/client";
+import { fmt } from "@/i18n/config";
 
 interface Specialty {
   id: string;
@@ -68,6 +70,8 @@ function todayISO() {
 }
 
 export default function BrowsePage() {
+  const { locale, t } = useI18n();
+  const b = t.browse;
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [languages, setLanguages] = useState<Language[]>([]);
   const [date, setDate] = useState(todayISO());
@@ -117,10 +121,10 @@ export default function BrowsePage() {
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setMessage(body.error ?? "Couldn't send that request.");
+      setMessage(body.error ?? b.requestFailed);
       return;
     }
-    setMessage("Request sent — you'll see it in your dashboard once the instructor responds.");
+    setMessage(b.requestSent);
     loadClasses();
   }
 
@@ -133,10 +137,10 @@ export default function BrowsePage() {
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setMessage(body.error ?? "Couldn't send that request.");
+      setMessage(body.error ?? b.requestFailed);
       return;
     }
-    setMessage("Instant request sent — check your dashboard for the video link once accepted.");
+    setMessage(b.instantSent);
   }
 
   function updateInPersonForm(instructorId: string, field: "date" | "time" | "address", value: string) {
@@ -155,7 +159,7 @@ export default function BrowsePage() {
     setMessage(null);
     const form = inPersonForms[instructorId];
     if (!form?.date || !form?.time || !form?.address) {
-      setMessage("Pick a date, time, and address before requesting an in-person session.");
+      setMessage(b.inPersonMissing);
       return;
     }
     const startTime = new Date(`${form.date}T${form.time}:00`).toISOString();
@@ -166,36 +170,38 @@ export default function BrowsePage() {
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setMessage(body.error ?? "Couldn't send that request.");
+      setMessage(body.error ?? b.requestFailed);
       return;
     }
-    setMessage("In-person request sent — you'll see it in your dashboard once the instructor responds.");
+    setMessage(b.inPersonSent);
   }
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="font-display text-3xl text-mint">Browse classes</h1>
+      <h1 className="font-display text-3xl text-mint">{b.title}</h1>
 
       {onDemand.length > 0 && (
         <section className="mt-8 rounded-2xl border border-sunset/40 bg-sunset/10 p-5">
-          <h2 className="font-display text-xl text-flamingo">Available now</h2>
+          <h2 className="font-display text-xl text-flamingo">{b.availableNow}</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {onDemand.map((inst) => (
               <div key={inst.id} className="rounded-xl bg-surface p-4 shadow-sm">
                 <InstructorHeading id={inst.user.id} name={inst.user.name} />
                 <p className="text-xs text-foreground/60">
-                  {inst.specialties.map((s) => s.name).join(", ") || "General practice"} ·{" "}
-                  {inst.languages.map((l) => l.name).join(", ") || "Language not set"}
+                  {inst.specialties.map((s) => s.name).join(", ") || b.general} ·{" "}
+                  {inst.languages.map((l) => l.name).join(", ") || b.noLanguage}
                 </p>
                 <p className="mt-1 text-sm text-foreground/80">
-                  {inst.onDemandDurationMinutes} min · ${inst.onDemandPricePerStudent?.toFixed(2)}/student
-                  {inst.onDemandCapacity ? ` · up to ${inst.onDemandCapacity} students` : " · open capacity"}
+                  {fmt(t.common.minutes, { n: inst.onDemandDurationMinutes ?? 0 })} · ${inst.onDemandPricePerStudent?.toFixed(2)}
+                  {t.common.perStudent}
+                  {" · "}
+                  {inst.onDemandCapacity ? fmt(b.upTo, { n: inst.onDemandCapacity }) : b.openCapacity}
                 </p>
                 <button
                   onClick={() => requestOnDemand(inst.user.id)}
                   className="mt-3 rounded-full bg-sunset px-4 py-1.5 text-sm font-semibold text-ink hover:opacity-90"
                 >
-                  Request now
+                  {b.requestNow}
                 </button>
               </div>
             ))}
@@ -205,10 +211,8 @@ export default function BrowsePage() {
 
       {inPerson.length > 0 && (
         <section className="mt-8 rounded-2xl border border-mint/30 bg-mint/5 p-5">
-          <h2 className="font-display text-xl text-mint">Book someone to come to you</h2>
-          <p className="mt-1 text-sm text-foreground/70">
-            At your home, office, or organization — pick a date, time, and address.
-          </p>
+          <h2 className="font-display text-xl text-mint">{b.comeToYou}</h2>
+          <p className="mt-1 text-sm text-foreground/70">{b.comeToYouBody}</p>
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             {inPerson.map((inst) => {
               const form = inPersonForms[inst.user.id] ?? { date: "", time: "", address: "" };
@@ -216,17 +220,21 @@ export default function BrowsePage() {
                 <div key={inst.id} className="rounded-xl bg-surface p-4 shadow-sm">
                   <InstructorHeading id={inst.user.id} name={inst.user.name} />
                   <p className="text-xs text-foreground/60">
-                    {inst.specialties.map((s) => s.name).join(", ") || "General practice"} ·{" "}
-                    {inst.languages.map((l) => l.name).join(", ") || "Language not set"}
+                    {inst.specialties.map((s) => s.name).join(", ") || b.general} ·{" "}
+                    {inst.languages.map((l) => l.name).join(", ") || b.noLanguage}
                   </p>
                   {(inst.travelServiceArea || inst.country) && (
                     <p className="mt-1 text-xs text-foreground/60">
-                      Travels to: {[inst.travelServiceArea, findCountry(inst.country)?.name].filter(Boolean).join(", ")}
+                      {fmt(b.travelsTo, {
+                        where: [inst.travelServiceArea, countryName(inst.country, locale)].filter(Boolean).join(", "),
+                      })}
                     </p>
                   )}
                   <p className="mt-1 text-sm text-foreground/80">
-                    {inst.inPersonDurationMinutes} min · ${inst.inPersonPricePerStudent?.toFixed(2)}/student
-                    {inst.inPersonCapacity ? ` · up to ${inst.inPersonCapacity} students` : " · open capacity"}
+                    {fmt(t.common.minutes, { n: inst.inPersonDurationMinutes ?? 0 })} · ${inst.inPersonPricePerStudent?.toFixed(2)}
+                  {t.common.perStudent}
+                    {" · "}
+                  {inst.inPersonCapacity ? fmt(b.upTo, { n: inst.inPersonCapacity }) : b.openCapacity}
                   </p>
                   <div className="mt-3 space-y-2">
                     <div className="flex gap-2">
@@ -244,7 +252,7 @@ export default function BrowsePage() {
                       />
                     </div>
                     <input
-                      placeholder="Address (home, office, organization)"
+                      placeholder={b.addressPlaceholder}
                       value={form.address}
                       onChange={(e) => updateInPersonForm(inst.user.id, "address", e.target.value)}
                       className="w-full rounded-lg border border-line px-2 py-1 text-sm"
@@ -254,7 +262,7 @@ export default function BrowsePage() {
                     onClick={() => requestInPerson(inst.user.id)}
                     className="mt-3 rounded-full bg-mint px-4 py-1.5 text-sm font-semibold text-ink hover:bg-mint-bright"
                   >
-                    Request in-person session
+                    {b.requestInPerson}
                   </button>
                 </div>
               );
@@ -265,7 +273,7 @@ export default function BrowsePage() {
 
       <section className="mt-8 flex flex-wrap gap-3 rounded-2xl bg-surface p-4">
         <div>
-          <label className="block text-xs font-medium text-foreground/70">Date</label>
+          <label className="block text-xs font-medium text-foreground/70">{b.date}</label>
           <input
             type="date"
             value={date}
@@ -274,13 +282,13 @@ export default function BrowsePage() {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-foreground/70">Length</label>
+          <label className="block text-xs font-medium text-foreground/70">{b.length}</label>
           <select
             value={duration}
             onChange={(e) => setDuration(e.target.value ? Number(e.target.value) : "")}
             className="mt-1 rounded-lg border border-line px-3 py-1.5"
           >
-            <option value="">Any length</option>
+            <option value="">{b.anyLength}</option>
             {DURATIONS.map((d) => (
               <option key={d} value={d}>
                 {d} min
@@ -289,13 +297,13 @@ export default function BrowsePage() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-foreground/70">Specialty</label>
+          <label className="block text-xs font-medium text-foreground/70">{b.specialty}</label>
           <select
             value={specialtyId}
             onChange={(e) => setSpecialtyId(e.target.value)}
             className="mt-1 rounded-lg border border-line px-3 py-1.5"
           >
-            <option value="">Any specialty</option>
+            <option value="">{b.anySpecialty}</option>
             {specialties.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -304,13 +312,13 @@ export default function BrowsePage() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-foreground/70">Language</label>
+          <label className="block text-xs font-medium text-foreground/70">{b.language}</label>
           <select
             value={languageId}
             onChange={(e) => setLanguageId(e.target.value)}
             className="mt-1 rounded-lg border border-line px-3 py-1.5"
           >
-            <option value="">Any language</option>
+            <option value="">{b.anyLanguage}</option>
             {languages.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.name}
@@ -319,15 +327,15 @@ export default function BrowsePage() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-foreground/70">Delivery</label>
+          <label className="block text-xs font-medium text-foreground/70">{b.delivery}</label>
           <select
             value={deliveryMethod}
             onChange={(e) => setDeliveryMethod(e.target.value)}
             className="mt-1 rounded-lg border border-line px-3 py-1.5"
           >
-            <option value="">Any delivery</option>
-            <option value="VIRTUAL">Virtual</option>
-            <option value="IN_PERSON">In-person</option>
+            <option value="">{b.anyDelivery}</option>
+            <option value="VIRTUAL">{t.common.virtual}</option>
+            <option value="IN_PERSON">{t.common.inPerson}</option>
           </select>
         </div>
       </section>
@@ -337,9 +345,9 @@ export default function BrowsePage() {
       <AdBar placement="BROWSE" className="my-6" />
 
       <section className="mt-6 space-y-4">
-        {loading && <p className="text-foreground/60">Loading…</p>}
+        {loading && <p className="text-foreground/60">{t.common.loading}</p>}
         {!loading && classes.length === 0 && (
-          <p className="text-foreground/60">No open classes match those filters yet — try widening your search.</p>
+          <p className="text-foreground/60">{b.noMatches}</p>
         )}
         {classes.map((c) => {
           const seatsLeft = c.capacity != null ? c.capacity - c._count.enrollments : null;
@@ -349,31 +357,36 @@ export default function BrowsePage() {
                 <div>
                   <h3 className="font-display text-lg text-foreground">{c.title}</h3>
                   <p className="text-sm text-foreground/60">
-                    with{" "}
+                    {b.with}{" "}
                     <Link href={`/instructors/${c.instructor.id}`} className="underline hover:text-flamingo">
                       {c.instructor.name}
                     </Link>{" "}
-                    · {new Date(c.startTime).toLocaleString()} · {c.durationMinutes} min
+                    · {new Date(c.startTime).toLocaleString(locale)} · {fmt(t.common.minutes, { n: c.durationMinutes })}
                   </p>
                   <p className="mt-1 text-xs text-foreground/60">
                     {c.specialties.map((s) => s.name).join(", ")} ·{" "}
                     {c.languages.map((l) => l.name).join(", ")}
                   </p>
                   <p className="mt-1 text-xs text-foreground/60">
-                    {c.deliveryMethod === "IN_PERSON" ? `📍 In-person at ${c.locationAddress}` : "💻 Virtual"}
+                    {c.deliveryMethod === "IN_PERSON"
+                      ? fmt(b.inPersonAt, { address: c.locationAddress ?? "" })
+                      : b.virtualTag}
                   </p>
                   {c.description && <p className="mt-2 text-sm text-foreground/80">{c.description}</p>}
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-flamingo">${c.pricePerStudent.toFixed(2)}/student</p>
+                  <p className="font-semibold text-flamingo">
+                    ${c.pricePerStudent.toFixed(2)}
+                    {t.common.perStudent}
+                  </p>
                   <p className="text-xs text-foreground/60">
-                    {seatsLeft != null ? `${seatsLeft} seat${seatsLeft === 1 ? "" : "s"} left` : "Open capacity"}
+                    {seatsLeft == null ? b.openCapacity : seatsLeft === 1 ? b.oneSeatLeft : fmt(b.seatsLeft, { n: seatsLeft })}
                   </p>
                   <button
                     onClick={() => requestToJoin(c.id)}
                     className="mt-2 rounded-full bg-flamingo px-4 py-1.5 text-sm font-semibold text-ink hover:bg-flamingo-bright"
                   >
-                    Request to join
+                    {b.requestToJoin}
                   </button>
                 </div>
               </div>
@@ -383,11 +396,11 @@ export default function BrowsePage() {
       </section>
 
       <p className="mt-10 text-center text-sm text-foreground/60">
-        Not seeing a login prompt for booking?{" "}
+        {b.signInHint}{" "}
         <Link href="/login" className="underline hover:text-flamingo">
-          Sign in
+          {t.nav.signIn}
         </Link>{" "}
-        first as a client.
+        {b.signInHintAfter}
       </p>
     </main>
   );
