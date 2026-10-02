@@ -55,6 +55,9 @@ export default function OnboardingPage() {
       .then((r) => r.json())
       .then((s: OnboardingStatus) => {
         setStatus(s);
+        // Pick up where they left off: past the welcome and profile if they've done those before.
+        if (s.waiverSigned) setStep(3);
+        else if (s.onboardingCompletedAt) setStep(2);
         setPhone(s.phone ?? "");
         setPreferredLanguageId(s.preferredLanguageId ?? "");
         if (s.instructorProfile) {
