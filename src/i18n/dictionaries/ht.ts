@@ -398,6 +398,23 @@ export const ht: Dictionary = {
     notes: "Nòt pou enstriktè yo",
     empty: "Kliyan sa a poko ranpli pwofil li.",
   },
+  room: {
+    signIn: "Tanpri konekte pou antre nan klas sa a.",
+    notAvailableTitle: "Sal sa a pa disponib pou ou",
+    notAvailableBody: "W ap wè lyen videyo a isit la lè yo aksepte rezèvasyon ou pou klas sa a.",
+    inPersonTitle: "Sa a se yon seyans an pèsòn",
+    location: "Kote:",
+    inPersonBody: "Pa gen sal videyo pou klas sa a — vini nan adrès ki anwo a a lè ki fikse a.",
+    recorded:
+      "🔴 Nou anrejistre klas sa a pou kalite ak sekirite. Nou kenbe anrejistreman yo 7 jou, se sèlman ti ekip revizyon nou an ki wè yo, epi apre sa nou efase yo.",
+    cameraTip: "Lè sal la louvri, klike sou “Pèmèt” pou navigatè ou ka itilize kamera ak mikwo ou.",
+    testMode: "Mòd tès: videyo a poko fin konfigire, kidonk apèl yo fini apre 5 minit epi yo pa anrejistre.",
+    unavailable: "Sal videyo a pa t ka louvri kounye a. Tanpri rafrechi paj la nan yon ti moman.",
+    testTitle: "Teste kamera ou",
+    testBody:
+      "Yon sal prive pou pratike, se pou ou sèlman — anyen pa anrejistre isit la. Verifye moun ap wè ou e tande ou anvan klas la.",
+    testLink: "Teste kamera ou",
+  },
   options: {
     ageGroups: { Children: "Timoun", Teens: "Adolesan", Adults: "Granmoun", Seniors: "Granmoun aje" },
     specialPopulations: {

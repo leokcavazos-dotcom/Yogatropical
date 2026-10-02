@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import WelcomeVideo from "@/components/WelcomeVideo";
 import PaymentMethodStep from "@/components/onboarding/PaymentMethodStep";
 import PhotoUploader from "@/components/PhotoUploader";
@@ -278,6 +279,9 @@ export default function OnboardingPage() {
           <p className="text-sm text-foreground/70">
             {isInstructor ? o.doneInstructor : o.doneClient}
           </p>
+          <Link href="/room/test" className="block text-sm text-mint underline hover:text-mint-bright">
+            🎥 {t.room.testLink}
+          </Link>
           <button onClick={finish} className="w-full rounded-full bg-flamingo px-4 py-2.5 font-semibold text-ink hover:bg-flamingo-bright">
             {isInstructor ? o.goDashboard : o.browseClasses}
           </button>

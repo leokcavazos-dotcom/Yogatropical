@@ -398,6 +398,23 @@ export const fr: Dictionary = {
     notes: "Notes pour les instructeurs",
     empty: "Cet élève n'a pas encore rempli son profil.",
   },
+  room: {
+    signIn: "Connectez-vous pour rejoindre ce cours.",
+    notAvailableTitle: "Cette salle ne vous est pas accessible",
+    notAvailableBody: "Le lien vidéo apparaîtra ici dès que votre réservation pour ce cours sera acceptée.",
+    inPersonTitle: "Il s'agit d'une séance en personne",
+    location: "Lieu :",
+    inPersonBody: "Pas de salle vidéo pour ce cours — présentez-vous à l'adresse ci-dessus à l'heure prévue.",
+    recorded:
+      "🔴 Ce cours est enregistré pour la qualité et la sécurité. Les enregistrements sont conservés 7 jours, vus uniquement par notre petite équipe de révision, puis supprimés.",
+    cameraTip: "À l'ouverture de la salle, cliquez sur « Autoriser » pour que votre navigateur utilise votre caméra et votre micro.",
+    testMode: "Mode test : la vidéo n'est pas encore entièrement configurée, les appels se terminent donc après 5 minutes et ne sont pas enregistrés.",
+    unavailable: "La salle vidéo n'a pas pu s'ouvrir. Actualisez la page dans un instant.",
+    testTitle: "Tester votre caméra",
+    testBody:
+      "Une salle d'essai privée rien que pour vous — rien n'y est enregistré. Vérifiez qu'on vous voit et vous entend avant le cours.",
+    testLink: "Tester votre caméra",
+  },
   options: {
     ageGroups: { Children: "Enfants", Teens: "Adolescents", Adults: "Adultes", Seniors: "Aînés" },
     specialPopulations: {

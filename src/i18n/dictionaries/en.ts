@@ -402,6 +402,23 @@ export const en = {
     notes: "Notes for instructors",
     empty: "This client hasn't filled out a profile yet.",
   },
+  room: {
+    signIn: "Please sign in to join this class.",
+    notAvailableTitle: "This room isn't available to you",
+    notAvailableBody: "You'll see the video link here once your booking for this class has been accepted.",
+    inPersonTitle: "This is an in-person session",
+    location: "Location:",
+    inPersonBody: "There's no video room for this one — show up at the address above at the scheduled time.",
+    recorded:
+      "🔴 This class is recorded for quality and safety. Recordings are kept for 7 days, seen only by our small review team, then deleted.",
+    cameraTip: "When the room opens, click “Allow” so your browser can use your camera and microphone.",
+    testMode: "Test mode: video isn't fully set up yet, so calls end after 5 minutes and aren't recorded.",
+    unavailable: "The video room couldn't open right now. Please refresh in a moment.",
+    testTitle: "Test your camera",
+    testBody:
+      "A private practice room just for you — nothing here is recorded. Check that people will see and hear you before class.",
+    testLink: "Test your camera",
+  },
   options: {
     ageGroups: { Children: "Children", Teens: "Teens", Adults: "Adults", Seniors: "Seniors" } as Record<string, string>,
     specialPopulations: {

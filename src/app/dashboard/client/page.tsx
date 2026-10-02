@@ -78,6 +78,9 @@ export default function ClientDashboard() {
           {cd.browse}
         </Link>
       </div>
+      <Link href="/room/test" className="mt-3 inline-block text-sm text-mint underline hover:text-mint-bright">
+        🎥 {t.room.testLink}
+      </Link>
 
       <p className="mt-2 text-sm text-foreground/60">
         {fmt(cd.freeCancellation, { hours: CANCELLATION_WINDOW_HOURS })}{" "}
