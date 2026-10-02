@@ -65,7 +65,7 @@ const sections: LegalSection[] = [
     blocks: [
       "We don't sell your personal information, and we don't share it for cross-context behavioral advertising. We share it only:",
       [
-        "With service providers who operate the Platform for us and may use it only for that purpose: Vercel (hosting, database, and file storage), Stripe (payments and payouts), and Jitsi Meet, operated by 8x8 (live video).",
+        "With service providers who operate the Platform for us and may use it only for that purpose: Vercel (hosting, database, and file storage), Stripe (payments and payouts), and Daily (daily.co) (live video and class recordings).",
         "With instructors and clients as described in the section above.",
         "When required by law, or to protect the safety, rights, or property of our users, the public, or Yoga Tropical.",
         "As part of a merger, acquisition, sale of assets, or reorganization (including a conversion to a cooperative), in which case this policy will continue to protect your information.",
