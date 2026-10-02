@@ -1,48 +1,44 @@
 import { prisma } from "@/lib/prisma";
 import { getPlatformSettings } from "@/lib/pricing";
-import { unlink } from "fs/promises";
-import path from "path";
-
-const UPLOADS_DIR = path.resolve(/* turbopackIgnore: true */ process.cwd(), process.env.UPLOADS_DIR ?? "./uploads");
+import { isVideoConfigured, listRecordings, deleteRecording } from "@/lib/video";
 
 /**
- * Every class is expected to be recorded (see the "Recordings & quality control"
- * section of the README) so admins can audit sessions after the fact. Recordings
- * are kept for `recordingRetentionDays` (default 7) unless a class has been
- * flagged, in which case an admin should extend `recordingExpiresAt` manually
- * before this purge job runs again.
- *
- * Actual capture requires wiring a recording backend for the video provider
- * (e.g. Jitsi + Jibri, or a hosted provider's recording API) — this module only
- * manages the lifecycle/retention of whatever recording file lands at
- * `recordingPath` once that capture pipeline is connected.
+ * Classes are recorded at Daily (see src/lib/video.ts) for quality review
+ * and safety. Recordings stay at Daily only for `recordingRetentionDays`
+ * (default 7) — this runs daily from the Vercel cron in vercel.json and
+ * deletes anything older, except recordings of classes an admin has
+ * flagged in an audit, which are held until the flag is dealt with.
  */
 export async function purgeExpiredRecordings(now: Date = new Date()) {
-  const expired = await prisma.classSession.findMany({
-    where: {
-      recordingStatus: "AVAILABLE",
-      recordingExpiresAt: { lte: now },
-    },
+  if (!isVideoConfigured()) return { deleted: 0, kept: 0 };
+  const { recordingRetentionDays } = await getPlatformSettings();
+  const cutoff = now.getTime() - recordingRetentionDays * 24 * 60 * 60 * 1000;
+
+  const recordings = await listRecordings();
+  const old = recordings.filter((r) => r.start_ts * 1000 < cutoff);
+  const rooms = [...new Set(old.map((r) => r.room_name))];
+  const classes = await prisma.classSession.findMany({
+    where: { videoRoomSlug: { in: rooms } },
+    select: { id: true, videoRoomSlug: true, audits: { where: { flagged: true }, select: { id: true } } },
   });
+  const byRoom = new Map(classes.map((c) => [c.videoRoomSlug, c]));
 
-  let purged = 0;
-  for (const session of expired) {
-    if (session.recordingPath) {
-      const resolved = path.resolve(UPLOADS_DIR, session.recordingPath);
-      if (resolved.startsWith(UPLOADS_DIR)) {
-        await unlink(resolved).catch(() => undefined);
-      }
+  let deleted = 0;
+  let kept = 0;
+  for (const recording of old) {
+    const session = byRoom.get(recording.room_name);
+    if (session && session.audits.length > 0) {
+      kept += 1;
+      continue;
     }
-    await prisma.classSession.update({
-      where: { id: session.id },
-      data: { recordingStatus: "DELETED", recordingPath: null },
-    });
-    purged += 1;
+    await deleteRecording(recording.id);
+    deleted += 1;
+    if (session) {
+      await prisma.classSession.update({
+        where: { id: session.id },
+        data: { recordingStatus: "DELETED", recordingPath: null },
+      });
+    }
   }
-  return purged;
-}
-
-export async function recordingRetentionMs(): Promise<number> {
-  const settings = await getPlatformSettings();
-  return settings.recordingRetentionDays * 24 * 60 * 60 * 1000;
+  return { deleted, kept };
 }

@@ -19,6 +19,7 @@ interface AdminClass {
   startTime: string;
   durationMinutes: number;
   mode: string;
+  deliveryMethod: "VIRTUAL" | "IN_PERSON";
   status: string;
   instructor: { name: string; email: string };
   specialties: { id: string; name: string }[];
@@ -131,6 +132,16 @@ export default function AdminDashboard() {
                     </p>
                     <p className="text-xs text-foreground/50">{c.specialties.map((s) => s.name).join(", ")}</p>
                   </div>
+                  {c.deliveryMethod === "VIRTUAL" && (
+                    <a
+                      href={`/api/admin/classes/${c.id}/recording`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full border border-line px-3 py-1 text-xs hover:bg-surface-2"
+                    >
+                      Watch recording
+                    </a>
+                  )}
                 </div>
 
                 {c.audits.length > 0 && (

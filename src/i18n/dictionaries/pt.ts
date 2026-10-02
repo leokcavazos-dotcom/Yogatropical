@@ -398,6 +398,23 @@ export const pt: Dictionary = {
     notes: "Observações para instrutores",
     empty: "Este aluno ainda não preencheu o perfil.",
   },
+  room: {
+    signIn: "Entre na sua conta para participar desta aula.",
+    notAvailableTitle: "Esta sala não está disponível para você",
+    notAvailableBody: "O link do vídeo aparecerá aqui quando sua reserva para esta aula for aceita.",
+    inPersonTitle: "Esta é uma sessão presencial",
+    location: "Local:",
+    inPersonBody: "Esta aula não tem sala de vídeo — compareça ao endereço acima no horário marcado.",
+    recorded:
+      "🔴 Esta aula é gravada por qualidade e segurança. As gravações ficam guardadas por 7 dias, só a nossa pequena equipe de revisão as vê, e depois são apagadas.",
+    cameraTip: "Quando a sala abrir, clique em “Permitir” para o navegador usar sua câmera e microfone.",
+    testMode: "Modo de teste: o vídeo ainda não está totalmente configurado, então as chamadas terminam após 5 minutos e não são gravadas.",
+    unavailable: "Não foi possível abrir a sala de vídeo agora. Atualize a página em instantes.",
+    testTitle: "Teste sua câmera",
+    testBody:
+      "Uma sala privada de teste só para você — nada aqui é gravado. Confira se vão te ver e ouvir antes da aula.",
+    testLink: "Teste sua câmera",
+  },
   options: {
     ageGroups: { Children: "Crianças", Teens: "Adolescentes", Adults: "Adultos", Seniors: "Idosos" },
     specialPopulations: {

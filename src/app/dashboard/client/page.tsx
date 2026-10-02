@@ -64,6 +64,9 @@ export default function ClientDashboard() {
           {cd.browse}
         </Link>
       </div>
+      <Link href="/room/test" className="mt-3 inline-block text-sm text-mint underline hover:text-mint-bright">
+        🎥 {t.room.testLink}
+      </Link>
 
       {loading && <p className="mt-6 text-foreground/60">{t.common.loading}</p>}
       {!loading && bookings.length === 0 && (
