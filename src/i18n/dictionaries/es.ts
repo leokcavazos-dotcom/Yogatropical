@@ -398,6 +398,23 @@ export const es: Dictionary = {
     notes: "Notas para instructores",
     empty: "Este cliente todavía no ha completado su perfil.",
   },
+  room: {
+    signIn: "Inicia sesión para entrar a esta clase.",
+    notAvailableTitle: "Esta sala no está disponible para ti",
+    notAvailableBody: "Verás el enlace de video aquí cuando acepten tu reserva para esta clase.",
+    inPersonTitle: "Esta es una sesión presencial",
+    location: "Lugar:",
+    inPersonBody: "Esta clase no tiene sala de video — preséntate en la dirección indicada a la hora programada.",
+    recorded:
+      "🔴 Esta clase se graba por calidad y seguridad. Las grabaciones se guardan 7 días, solo las ve nuestro pequeño equipo de revisión y luego se eliminan.",
+    cameraTip: "Cuando se abra la sala, haz clic en “Permitir” para que tu navegador use tu cámara y micrófono.",
+    testMode: "Modo de prueba: el video aún no está configurado del todo, así que las llamadas terminan a los 5 minutos y no se graban.",
+    unavailable: "No se pudo abrir la sala de video. Actualiza la página en un momento.",
+    testTitle: "Prueba tu cámara",
+    testBody:
+      "Una sala privada de práctica solo para ti — aquí no se graba nada. Verifica que te vean y te escuchen antes de la clase.",
+    testLink: "Prueba tu cámara",
+  },
   options: {
     ageGroups: { Children: "Niños", Teens: "Adolescentes", Adults: "Adultos", Seniors: "Personas mayores" },
     specialPopulations: {

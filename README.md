@@ -50,12 +50,13 @@ Demo accounts (password `password123` for all): `admin@yogatropical.demo`, `inst
   review before they can publish classes or go available on demand (`isCertified` gate, enforced in
   `src/lib/classSessionService.ts`). Admins can rate/audit any class and flag one for follow-up, which holds
   its recording indefinitely instead of the default retention window.
-- **Recordings**: the data model and retention lifecycle (`src/lib/recordings.ts`, default 7-day retention,
-  configurable via `PlatformSettings.recordingRetentionDays`) are in place, but **actual video capture isn't
-  wired up** — Jitsi's public server doesn't record by default. To turn this on, either self-host Jitsi with
-  Jibri, or switch the video provider to one with a recording API (Daily.co, LiveKit, Zoom SDK) and populate
-  `ClassSession.recordingPath` when a recording finishes. Run `purgeExpiredRecordings()` on a schedule (cron /
-  serverless function) once real recordings exist.
+- **Video & recordings**: virtual classes run in private Daily (daily.co) rooms (`src/lib/video.ts`), embedded
+  on `/room/[id]` with Daily's built-in camera/microphone check. Only the instructor and accepted students get a
+  meeting token. The instructor's token starts a cloud recording automatically; recordings stay at Daily and a
+  daily Vercel cron (`vercel.json` → `/api/cron/purge-recordings`, protected by `CRON_SECRET`) deletes them after
+  `PlatformSettings.recordingRetentionDays` (default 7), except for classes an admin has flagged. Admins open
+  recordings from the Quality control list. `/room/test` gives any signed-in user an unrecorded practice room.
+  Without `DAILY_API_KEY`, rooms fall back to the public meet.jit.si test server (5-minute limit, no recording).
 
 ## Onboarding
 
@@ -136,7 +137,6 @@ as commission revenue is still just that — an idea, not implemented. See "Busi
 - Our own merchandise with a cart and checkout (the current store is affiliate links only).
 - Ad network integration (ads are uploaded manually by admins for now).
 - Charging clients and splitting payouts to instructors (see "Payments" above).
-- Actual video recording capture (see "Recordings" above).
 - Cooperative governance/voting tooling — deliberately deferred; see "Business model & governance."
 - Real onboarding videos — the video slot is wired up (see "Onboarding" above), but no video file exists yet.
 
@@ -147,7 +147,7 @@ as commission revenue is still just that — an idea, not implemented. See "Busi
   settings)
 - `src/lib/` — business logic: `pricing.ts` + `pricingRules.ts` (minimum prices + commission), `classSessionService.ts`
   (create/request/accept/decline + on-demand, all waiver-gated), `certificationStorage.ts` (Vercel Blob
-  in production, local disk fallback for dev), `recordings.ts`, `video.ts` (Jitsi room helpers),
+  in production, local disk fallback for dev), `recordings.ts`, `video.ts` (Daily rooms, tokens, recordings),
   `waiver.ts` (safety waiver text + version), `stripe.ts`, `onboarding.ts`, `auth.ts`
 - `src/app/api/` — REST-ish route handlers backing all of the above
 - `src/app/(pages)` — `/`, `/browse`, `/about`, `/guidelines`, `/login`, `/signup`, `/onboarding`,

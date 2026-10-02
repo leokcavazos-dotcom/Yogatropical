@@ -322,7 +322,12 @@ export default function InstructorDashboard() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10 space-y-10">
-      <h1 className="font-display text-3xl text-mint">Instructor dashboard</h1>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h1 className="font-display text-3xl text-mint">Instructor dashboard</h1>
+        <Link href="/room/test" className="text-sm text-mint underline hover:text-mint-bright">
+          🎥 Test your camera
+        </Link>
+      </div>
       {message && <p className="rounded-lg bg-mint/10 px-4 py-2 text-sm text-mint">{message}</p>}
 
       {!profile.isCertified && (
