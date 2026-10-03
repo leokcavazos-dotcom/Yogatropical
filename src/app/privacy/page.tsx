@@ -43,7 +43,7 @@ const sections: LegalSection[] = [
         "To create and run your account, and to show your profile as described below.",
         "To arrange, charge for, pay out, refund, and record bookings.",
         "To verify instructors' documents and keep the community safe, including reviewing classes and investigating reports.",
-        "To communicate with you about your account, bookings, and changes to our policies.",
+        "To communicate with you about your account, bookings, and changes to our policies, including class reminder emails (which you can turn off on your dashboard).",
         "To prevent fraud, abuse, and security incidents, and to comply with legal obligations.",
         "To understand and improve the Platform.",
       ],
@@ -65,7 +65,7 @@ const sections: LegalSection[] = [
     blocks: [
       "We don't sell your personal information, and we don't share it for cross-context behavioral advertising. We share it only:",
       [
-        "With service providers who operate the Platform for us and may use it only for that purpose: Vercel (hosting, database, and file storage), Stripe (payments and payouts), and Daily (daily.co) (live video and class recordings).",
+        "With service providers who operate the Platform for us and may use it only for that purpose: Vercel (hosting, database, and file storage), Stripe (payments and payouts), Daily (daily.co) (live video and class recordings), and Resend (class reminder emails).",
         "With instructors and clients as described in the section above.",
         "When required by law, or to protect the safety, rights, or property of our users, the public, or Yoga Tropical.",
         "As part of a merger, acquisition, sale of assets, or reorganization (including a conversion to a cooperative), in which case this policy will continue to protect your information.",
