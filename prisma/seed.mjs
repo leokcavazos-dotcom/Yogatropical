@@ -49,10 +49,10 @@ async function main() {
   }
 
   // Reference data (specialties/languages/platform settings) is
-  // always safe to seed. Demo login accounts are only for trying the app out —
-  // skip them in a real production database with SEED_DEMO_ACCOUNTS=false.
-  if (process.env.SEED_DEMO_ACCOUNTS === "false") {
-    console.log("Seed complete (reference data only, demo accounts skipped).");
+  // always safe to seed. Demo login accounts (shared password) are only for
+  // trying the app out locally, so they're created only with SEED_DEMO_ACCOUNTS=true.
+  if (process.env.SEED_DEMO_ACCOUNTS !== "true") {
+    console.log("Seed complete (reference data only). Set SEED_DEMO_ACCOUNTS=true to add demo accounts.");
     return;
   }
 
