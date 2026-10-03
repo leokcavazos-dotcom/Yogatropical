@@ -72,6 +72,9 @@ model User {
   preferredLanguage Language?         @relation("UserPreferredLanguage", fields: [preferredLanguageId], references: [id])
   stripeCustomerId  String?
   photoPath         String?
+  emailReminders    Boolean           @default(true)
+  locale            String?
+  timeZone          String?
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   instructorProfile InstructorProfile?
@@ -194,6 +197,8 @@ model ClassSession {
   recordingStatus  RecordingStatus @default(NOT_RECORDED)
   recordingPath    String?
   recordingExpiresAt DateTime?
+  reminderDaySentAt  DateTime?
+  reminderHourSentAt DateTime?
   specialties      Specialty[]   @relation("ClassSpecialties")
   languages        Language[]    @relation("ClassLanguages")
   enrollments      Enrollment[]
@@ -231,6 +236,8 @@ model Enrollment {
   stripePaymentIntentId String?
   paidAt                DateTime?
   refundedAt            DateTime?
+  reminderDaySentAt     DateTime?
+  reminderHourSentAt    DateTime?
 
   @@unique([classSessionId, clientId])
 }
