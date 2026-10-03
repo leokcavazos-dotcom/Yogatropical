@@ -40,6 +40,20 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               </a>
               .
             </p>
+            <nav className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1">
+              <a href="/terms" className="underline hover:text-flamingo">
+                {t.footer.terms}
+              </a>
+              <a href="/privacy" className="underline hover:text-flamingo">
+                {t.footer.privacy}
+              </a>
+              <a href="/instructor-agreement" className="underline hover:text-flamingo">
+                {t.footer.instructorAgreement}
+              </a>
+              <a href="/guidelines" className="underline hover:text-flamingo">
+                {t.footer.codeOfConduct}
+              </a>
+            </nav>
           </footer>
         </I18nProvider>
       </body>

@@ -83,7 +83,7 @@ export const ht: Dictionary = {
       "Enstriktè nou yo anseye an angle, panyòl, pòtigè, franse, kreyòl ayisyen, kechwa ak plis ankò — nan lang yo pale a ak nan lang elèv la vle pratike a, menm klas melanje an de lang.",
     certTitle: "Sètifikasyon ak kalite",
     certBodyBefore:
-      "Chak enstriktè voye dokiman sètifikasyon li yo, e ekip nou an revize yo anvan li ka pibliye oswa bay yon klas. Nou anrejistre klas yo pou kontwòl kalite epi nou kenbe yo pou yon ti tan (kounye a 7 jou, plis si yo make yon klas pou suivi). Gade",
+      "Chak enstriktè voye dokiman sètifikasyon li yo, e ekip nou an revize yo anvan li ka pibliye oswa bay yon klas. Nou ka anrejistre klas yo pou kontwòl kalite epi kenbe yo pou yon ti tan (kounye a 7 jou, plis si yo make yon klas pou suivi). Gade",
     certLink: "Kòd konduit",
     certBodyAfter: "nou an pou wè sa nou chèche.",
     govTitle: "Kote n prale: soti LLC pou vin koperativ",

@@ -15,7 +15,7 @@ export default function GuidelinesPage() {
         <h2 className="font-display text-2xl text-flamingo">Health &amp; safety</h2>
         <p className="mt-3 whitespace-pre-line leading-relaxed text-foreground/90">{WAIVER_TEXT}</p>
         <p className="mt-3 text-sm text-foreground/60">
-          You&apos;ll sign a short version of this during onboarding, before your first booking or class.
+          You&apos;ll sign this waiver during onboarding, before your first booking or class.
         </p>
       </section>
 
@@ -45,9 +45,11 @@ export default function GuidelinesPage() {
       <section className="mt-10">
         <h2 className="font-display text-2xl text-flamingo">Recording and privacy</h2>
         <p className="mt-3 leading-relaxed text-foreground/90">
-          Classes are recorded for quality review. Recordings are kept on file for a limited retention period
-          (7 days by default) and only reviewed by our quality-control team, unless a class is flagged for
-          follow-up, in which case the recording is held longer. Recordings are never shared publicly.
+          Live video classes may be recorded for quality review and safety. Recordings are kept on file for a
+          limited retention period (7 days by default) and only reviewed by our quality-control team, unless a
+          class is flagged for follow-up, in which case the recording is held longer. Recordings are never shared
+          publicly. Please don&apos;t record, screenshot, or share a class or anyone in it without everyone&apos;s
+          consent.
         </p>
       </section>
 

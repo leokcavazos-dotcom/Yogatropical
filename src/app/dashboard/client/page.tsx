@@ -6,6 +6,7 @@ import Link from "next/link";
 import ReminderToggle from "@/components/ReminderToggle";
 import { useI18n } from "@/i18n/client";
 import { fmt, label } from "@/i18n/config";
+import { CANCELLATION_WINDOW_HOURS } from "@/lib/legal";
 
 interface Booking {
   id: string;
@@ -33,11 +34,16 @@ const STATUS_STYLES: Record<Booking["status"], string> = {
   COMPLETED: "bg-surface-2 text-foreground/60",
 };
 
+function hoursUntil(iso: string) {
+  return (new Date(iso).getTime() - Date.now()) / 3_600_000;
+}
+
 export default function ClientDashboard() {
   const { locale, t } = useI18n();
   const cd = t.clientDashboard;
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
 
   function load() {
     setLoading(true);
@@ -52,8 +58,16 @@ export default function ClientDashboard() {
     load();
   }, []);
 
-  async function cancelBooking(id: string) {
-    await fetch(`/api/enrollments/${id}`, { method: "DELETE" });
+  async function cancelBooking(b: Booking) {
+    setMessage(null);
+    const hours = CANCELLATION_WINDOW_HOURS;
+    const lateCancel = b.status === "ACCEPTED" && hoursUntil(b.classSession.startTime) < hours;
+    if (!window.confirm(lateCancel ? fmt(cd.lateCancel, { hours }) : cd.confirmCancel)) return;
+    const res = await fetch(`/api/enrollments/${b.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setMessage(body.error ?? cd.cancelFailed);
+    }
     load();
   }
 
@@ -72,6 +86,13 @@ export default function ClientDashboard() {
         <ReminderToggle />
       </div>
 
+      <p className="mt-2 text-sm text-foreground/60">
+        {fmt(cd.freeCancellation, { hours: CANCELLATION_WINDOW_HOURS })}{" "}
+        <Link href="/terms#section-7" className="underline hover:text-flamingo">
+          {cd.cancellationPolicy}
+        </Link>
+      </p>
+      {message && <p className="mt-4 rounded-lg bg-red-500/15 px-4 py-2 text-sm text-red-300">{message}</p>}
       {loading && <p className="mt-6 text-foreground/60">{t.common.loading}</p>}
       {!loading && bookings.length === 0 && (
         <p className="mt-6 text-foreground/60">{cd.empty}</p>
@@ -121,7 +142,7 @@ export default function ClientDashboard() {
               )}
               {(b.status === "PENDING" || b.status === "ACCEPTED") && (
                 <button
-                  onClick={() => cancelBooking(b.id)}
+                  onClick={() => cancelBooking(b)}
                   className="rounded-full border border-line px-4 py-1.5 text-sm text-foreground/70 hover:bg-surface-2"
                 >
                   {cd.cancel}

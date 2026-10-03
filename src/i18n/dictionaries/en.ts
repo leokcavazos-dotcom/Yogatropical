@@ -84,7 +84,7 @@ export const en = {
       "Our instructors teach in English, Spanish, Portuguese, French, Haitian Creole, Quechua, and more — whatever language they speak and a student wants to practice in, including hybrid, bilingual classes.",
     certTitle: "Certification and quality",
     certBodyBefore:
-      "Every instructor submits certification documents that our team reviews before they can publish or teach a class. Classes are recorded for quality review and kept on file for a limited retention period (currently 7 days, longer if a class is flagged for follow-up). See our",
+      "Every instructor submits certification documents that our team reviews before they can publish or teach a class. Classes may be recorded for quality review and kept on file for a limited retention period (currently 7 days, longer if a class is flagged for follow-up). See our",
     certLink: "Code of Conduct",
     certBodyAfter: "for what we look for.",
     govTitle: "Where we're headed: from LLC to cooperative",

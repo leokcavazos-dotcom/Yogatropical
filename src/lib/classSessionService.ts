@@ -3,6 +3,7 @@ import { generateVideoRoomSlug } from "@/lib/video";
 import { validateMinimumPrice, isAllowedDuration, calculateCommission } from "@/lib/pricing";
 import { hasSignedCurrentWaiver } from "@/lib/onboarding";
 import { isPaymentsConfigured, getStripeClient } from "@/lib/stripe";
+import { CANCELLATION_WINDOW_HOURS } from "@/lib/legal";
 import {
   hasProfilePhoto,
   hasApprovedInsurance,
@@ -210,7 +211,10 @@ export async function requestEnrollment(classSessionId: string, clientId: string
 }
 
 export async function cancelEnrollment(enrollmentId: string, clientId: string) {
-  const enrollment = await prisma.enrollment.findUnique({ where: { id: enrollmentId } });
+  const enrollment = await prisma.enrollment.findUnique({
+    where: { id: enrollmentId },
+    include: { classSession: { select: { startTime: true } } },
+  });
   if (!enrollment) throw new ClassSessionError("Booking not found.");
   if (enrollment.clientId !== clientId) {
     throw new ClassSessionError("You can only cancel your own bookings.");
@@ -218,8 +222,21 @@ export async function cancelEnrollment(enrollmentId: string, clientId: string) {
   if (["DECLINED", "CANCELLED", "COMPLETED", "PAYMENT_FAILED"].includes(enrollment.status)) {
     throw new ClassSessionError("This booking can't be cancelled anymore.");
   }
+  if (enrollment.status === "ACCEPTED" && enrollment.classSession.startTime.getTime() <= Date.now()) {
+    throw new ClassSessionError("This class has already started, so it can't be cancelled.");
+  }
 
-  if (enrollment.status === "ACCEPTED" && enrollment.paidAt && enrollment.stripePaymentIntentId && isPaymentsConfigured()) {
+  // Inside the window the instructor keeps their payout, per the Terms of Service.
+  const withinNoRefundWindow =
+    enrollment.classSession.startTime.getTime() - Date.now() < CANCELLATION_WINDOW_HOURS * 60 * 60 * 1000;
+
+  if (
+    enrollment.status === "ACCEPTED" &&
+    enrollment.paidAt &&
+    enrollment.stripePaymentIntentId &&
+    isPaymentsConfigured() &&
+    !withinNoRefundWindow
+  ) {
     const stripe = getStripeClient();
     await stripe.refunds.create({
       payment_intent: enrollment.stripePaymentIntentId,
