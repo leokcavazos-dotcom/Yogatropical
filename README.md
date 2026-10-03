@@ -21,14 +21,15 @@ for the full mission and Code of Conduct.
 npm install
 cp .env.example .env   # then edit DATABASE_URL, AUTH_SECRET, etc.
 npx prisma migrate dev
-npm run db:seed        # creates demo admin/instructor/client accounts, specialties, languages, platform settings
+npm run db:seed        # specialties, languages, platform settings
+SEED_DEMO_ACCOUNTS=true npm run db:seed   # also demo admin/instructor/client accounts (local only)
 npm run dev
 ```
 
 You need a Postgres database to point `DATABASE_URL` at — either run one locally, or use a free one from
 Vercel Postgres/Neon/Supabase even for local development.
 
-Demo accounts (password `password123` for all): `admin@yogatropical.demo`, `instructor@yogatropical.demo`,
+Demo accounts (with `SEED_DEMO_ACCOUNTS=true`; password `password123` for all): `admin@yogatropical.demo`, `instructor@yogatropical.demo`,
 `client@yogatropical.demo`.
 
 ## How the booking model works
