@@ -24,7 +24,18 @@ export default function LoginPage() {
       setError(t.auth.loginError);
       return;
     }
-    router.push("/");
+    // Send people where they need to be: unfinished setup first, otherwise their usual starting page.
+    const status = await fetch("/api/onboarding/status")
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+    let destination = "/";
+    if (status) {
+      if (status.role !== "ADMIN" && (!status.waiverSigned || !status.onboardingCompletedAt)) destination = "/onboarding";
+      else if (status.role === "INSTRUCTOR") destination = "/dashboard/instructor";
+      else if (status.role === "ADMIN") destination = "/dashboard/admin";
+      else destination = "/browse";
+    }
+    router.push(destination);
     router.refresh();
   }
 

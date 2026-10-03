@@ -40,6 +40,7 @@ export default function OnboardingPage() {
   const [message, setMessage] = useState<string | null>(null);
 
   const [phone, setPhone] = useState("");
+  const [emailReminders, setEmailReminders] = useState(true);
   const [preferredLanguageId, setPreferredLanguageId] = useState("");
   const [bio, setBio] = useState("");
   const [specialtyIds, setSpecialtyIds] = useState<string[]>([]);
@@ -55,6 +56,9 @@ export default function OnboardingPage() {
       .then((r) => r.json())
       .then((s: OnboardingStatus) => {
         setStatus(s);
+        // Pick up where they left off: past the welcome and profile if they've done those before.
+        if (s.waiverSigned) setStep(3);
+        else if (s.onboardingCompletedAt) setStep(2);
         setPhone(s.phone ?? "");
         setPreferredLanguageId(s.preferredLanguageId ?? "");
         if (s.instructorProfile) {
@@ -94,6 +98,11 @@ export default function OnboardingPage() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone, preferredLanguageId: preferredLanguageId || null }),
+    });
+    await fetch("/api/me/reminders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emailReminders, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
     });
     goTo(2);
   }
@@ -235,10 +244,23 @@ export default function OnboardingPage() {
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              type="tel"
+              autoComplete="tel"
               placeholder={o.phonePlaceholder}
               className="mt-1 w-full rounded-lg border border-line px-3 py-2"
             />
+            <p className="mt-1 text-xs text-foreground/60">{o.phoneHint}</p>
           </div>
+
+          <label className="flex items-start gap-2 text-sm text-foreground/80">
+            <input
+              type="checkbox"
+              checked={emailReminders}
+              onChange={(e) => setEmailReminders(e.target.checked)}
+              className="mt-0.5 accent-flamingo"
+            />
+            <span>{t.reminders.toggle}</span>
+          </label>
 
           <button onClick={saveProfileStep} className="w-full rounded-full bg-flamingo px-4 py-2.5 font-semibold text-ink hover:bg-flamingo-bright">
             {t.common.continue}

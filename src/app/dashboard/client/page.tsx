@@ -3,6 +3,7 @@
 import ClientProfileForm from "@/components/ClientProfileForm";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ReminderToggle from "@/components/ReminderToggle";
 import { useI18n } from "@/i18n/client";
 import { fmt, label } from "@/i18n/config";
 import { CANCELLATION_WINDOW_HOURS } from "@/lib/legal";
@@ -81,6 +82,9 @@ export default function ClientDashboard() {
       <Link href="/room/test" className="mt-3 inline-block text-sm text-mint underline hover:text-mint-bright">
         🎥 {t.room.testLink}
       </Link>
+      <div className="mt-3">
+        <ReminderToggle />
+      </div>
 
       <p className="mt-2 text-sm text-foreground/60">
         {fmt(cd.freeCancellation, { hours: CANCELLATION_WINDOW_HOURS })}{" "}

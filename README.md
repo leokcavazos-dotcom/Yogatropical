@@ -21,14 +21,15 @@ for the full mission and Code of Conduct.
 npm install
 cp .env.example .env   # then edit DATABASE_URL, AUTH_SECRET, etc.
 npx prisma migrate dev
-npm run db:seed        # creates demo admin/instructor/client accounts, specialties, languages, platform settings
+npm run db:seed        # specialties, languages, platform settings
+SEED_DEMO_ACCOUNTS=true npm run db:seed   # also demo admin/instructor/client accounts (local only)
 npm run dev
 ```
 
 You need a Postgres database to point `DATABASE_URL` at — either run one locally, or use a free one from
 Vercel Postgres/Neon/Supabase even for local development.
 
-Demo accounts (password `password123` for all): `admin@yogatropical.demo`, `instructor@yogatropical.demo`,
+Demo accounts (with `SEED_DEMO_ACCOUNTS=true`; password `password123` for all): `admin@yogatropical.demo`, `instructor@yogatropical.demo`,
 `client@yogatropical.demo`.
 
 ## How the booking model works
@@ -57,6 +58,11 @@ Demo accounts (password `password123` for all): `admin@yogatropical.demo`, `inst
   `PlatformSettings.recordingRetentionDays` (default 7), except for classes an admin has flagged. Admins open
   recordings from the Quality control list. `/room/test` gives any signed-in user an unrecorded practice room.
   Without `DAILY_API_KEY`, rooms fall back to the public meet.jit.si test server (5-minute limit, no recording).
+- **Class reminders**: `src/lib/reminders.ts` emails the instructor and every accepted student a day before and
+  about an hour before class, in the language they use the site in and their own time zone, through Resend
+  (`RESEND_API_KEY`). Vercel's free plan only runs crons daily, so `.github/workflows/reminders.yml` calls
+  `/api/cron/send-reminders` every 15 minutes with `CRON_SECRET` (add it as a GitHub Actions secret too).
+  People turn reminders on or off in onboarding and on their dashboard.
 
 ## Onboarding
 
