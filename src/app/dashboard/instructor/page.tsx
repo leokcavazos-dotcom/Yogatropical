@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import ReminderToggle from "@/components/ReminderToggle";
 import { COUNTRIES } from "@/lib/countries";
 import { minimumPrice } from "@/lib/pricingRules";
 import { AGE_GROUPS, SPECIAL_POPULATIONS, CERTIFICATION_KINDS, type CertificationKindKey } from "@/lib/profileOptions";
@@ -322,11 +323,14 @@ export default function InstructorDashboard() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10 space-y-10">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="font-display text-3xl text-mint">Instructor dashboard</h1>
-        <Link href="/room/test" className="text-sm text-mint underline hover:text-mint-bright">
-          🎥 Test your camera
-        </Link>
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h1 className="font-display text-3xl text-mint">Instructor dashboard</h1>
+          <Link href="/room/test" className="text-sm text-mint underline hover:text-mint-bright">
+            🎥 Test your camera
+          </Link>
+        </div>
+        <ReminderToggle />
       </div>
       {message && <p className="rounded-lg bg-mint/10 px-4 py-2 text-sm text-mint">{message}</p>}
 

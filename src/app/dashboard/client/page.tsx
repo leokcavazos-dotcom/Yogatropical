@@ -3,6 +3,7 @@
 import ClientProfileForm from "@/components/ClientProfileForm";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ReminderToggle from "@/components/ReminderToggle";
 import { useI18n } from "@/i18n/client";
 import { fmt, label } from "@/i18n/config";
 
@@ -67,6 +68,9 @@ export default function ClientDashboard() {
       <Link href="/room/test" className="mt-3 inline-block text-sm text-mint underline hover:text-mint-bright">
         🎥 {t.room.testLink}
       </Link>
+      <div className="mt-3">
+        <ReminderToggle />
+      </div>
 
       {loading && <p className="mt-6 text-foreground/60">{t.common.loading}</p>}
       {!loading && bookings.length === 0 && (

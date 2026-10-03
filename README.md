@@ -58,6 +58,11 @@ Demo accounts (with `SEED_DEMO_ACCOUNTS=true`; password `password123` for all): 
   `PlatformSettings.recordingRetentionDays` (default 7), except for classes an admin has flagged. Admins open
   recordings from the Quality control list. `/room/test` gives any signed-in user an unrecorded practice room.
   Without `DAILY_API_KEY`, rooms fall back to the public meet.jit.si test server (5-minute limit, no recording).
+- **Class reminders**: `src/lib/reminders.ts` emails the instructor and every accepted student a day before and
+  about an hour before class, in the language they use the site in and their own time zone, through Resend
+  (`RESEND_API_KEY`). Vercel's free plan only runs crons daily, so `.github/workflows/reminders.yml` calls
+  `/api/cron/send-reminders` every 15 minutes with `CRON_SECRET` (add it as a GitHub Actions secret too).
+  People turn reminders on or off in onboarding and on their dashboard.
 
 ## Onboarding
 
