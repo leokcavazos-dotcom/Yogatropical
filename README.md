@@ -60,8 +60,8 @@ Demo accounts (with `SEED_DEMO_ACCOUNTS=true`; password `password123` for all): 
   Without `DAILY_API_KEY`, rooms fall back to the public meet.jit.si test server (5-minute limit, no recording).
 - **Class reminders**: `src/lib/reminders.ts` emails the instructor and every accepted student a day before and
   about an hour before class, in the language they use the site in and their own time zone, through Resend
-  (`RESEND_API_KEY`). Vercel's free plan only runs crons daily, so `.github/workflows/reminders.yml` calls
-  `/api/cron/send-reminders` every 15 minutes with `CRON_SECRET` (add it as a GitHub Actions secret too).
+  (`RESEND_API_KEY`). Vercel's free plan only runs crons daily, so a cron-job.org job calls
+  `/api/cron/send-reminders` every 15 minutes with the header `Authorization: Bearer <CRON_SECRET>`.
   People turn reminders on or off in onboarding and on their dashboard.
 
 ## Onboarding
