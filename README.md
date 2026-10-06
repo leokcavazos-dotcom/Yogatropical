@@ -39,8 +39,9 @@ Demo accounts (with `SEED_DEMO_ACCOUNTS=true`; password `password123` for all): 
   request a seat. The instructor must accept each request — up to capacity — before it's a confirmed booking.
 - **On-demand classes**: an instructor flips "available now," sets a duration/price/capacity for on-demand
   sessions, and clients can request an instant session. Accepting the request starts the class immediately.
-- **Video**: every class gets a unique Jitsi Meet room. The room link only appears to the instructor and to
-  clients whose booking has been accepted (`/room/[classSessionId]`, authorization enforced server-side).
+- **Video**: every virtual class gets its own private video room (see "Video & recordings" below). The room link
+  only appears to the instructor and to clients whose booking has been accepted (`/room/[classSessionId]`,
+  authorization enforced server-side).
 - **Languages**: instructors tag which language(s) they teach in (seeded with English, Spanish, Portuguese,
   French, Haitian Creole, Quechua, Guarani, Nahuatl, Jamaican Patois — instructors can add others), and classes
   can be single-language or hybrid/bilingual. Clients filter by language when browsing.
@@ -58,6 +59,7 @@ Demo accounts (with `SEED_DEMO_ACCOUNTS=true`; password `password123` for all): 
   `PlatformSettings.recordingRetentionDays` (default 7), except for classes an admin has flagged. Admins open
   recordings from the Quality control list. `/room/test` gives any signed-in user an unrecorded practice room.
   Without `DAILY_API_KEY`, rooms fall back to the public meet.jit.si test server (5-minute limit, no recording).
+  Vercel only reads environment variables at build time, so after adding or changing a key, redeploy Production.
 - **Class reminders**: `src/lib/reminders.ts` emails the instructor and every accepted student a day before and
   about an hour before class, in the language they use the site in and their own time zone, through Resend
   (`RESEND_API_KEY`). Vercel's free plan only runs crons daily, so a cron-job.org job calls
