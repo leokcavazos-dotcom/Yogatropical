@@ -16,22 +16,22 @@ function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"CLIENT" | "INSTRUCTOR">(initialRole);
-  const [acceptedGuidelines, setAcceptedGuidelines] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!acceptedGuidelines) {
-      setError(t.auth.mustAgree);
+    if (!acceptedTerms) {
+      setError(t.auth.mustAgreeTerms);
       return;
     }
     setLoading(true);
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, role, acceptedGuidelines }),
+      body: JSON.stringify({ name, email, password, role, acceptedTerms }),
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -98,16 +98,32 @@ function SignupForm() {
         <label className="flex items-start gap-2 text-sm text-foreground/80">
           <input
             type="checkbox"
-            checked={acceptedGuidelines}
-            onChange={(e) => setAcceptedGuidelines(e.target.checked)}
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
             className="mt-1"
           />
           <span>
-            {t.auth.agreeGuidelines}{" "}
+            {t.auth.agreeTermsBefore}{" "}
+            <Link href="/terms" target="_blank" className="underline hover:text-flamingo">
+              {t.auth.termsLink}
+            </Link>{" "}
+            {t.auth.termsNote}{" "}
+            <Link href="/privacy" target="_blank" className="underline hover:text-flamingo">
+              {t.auth.privacyLink}
+            </Link>
+            {role === "INSTRUCTOR" ? ", " : ` ${t.auth.and} `}
             <Link href="/guidelines" target="_blank" className="underline hover:text-flamingo">
               {t.auth.guidelinesLink}
-            </Link>{" "}
-            {t.auth.agreeGuidelinesAfter}
+            </Link>
+            {role === "INSTRUCTOR" && (
+              <>
+                {` ${t.auth.and} `}
+                <Link href="/instructor-agreement" target="_blank" className="underline hover:text-flamingo">
+                  {t.auth.instructorAgreementLink}
+                </Link>
+              </>
+            )}
+            .
           </span>
         </label>
         {error && <p className="text-sm text-red-400">{error}</p>}

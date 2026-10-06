@@ -2,23 +2,27 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { TERMS_VERSION } from "@/lib/legal";
 
 const RegisterSchema = z.object({
   name: z.string().min(1).max(120),
   email: z.string().email(),
   password: z.string().min(8).max(200),
   role: z.enum(["CLIENT", "INSTRUCTOR"]),
-  acceptedGuidelines: z.literal(true),
+  acceptedTerms: z.literal(true),
 });
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = RegisterSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Please check your name, email, password, and role." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Please check your name, email, and password, and confirm you're 18+ and agree to the terms." },
+      { status: 400 },
+    );
   }
 
-  const { name, email, password, role, acceptedGuidelines } = parsed.data;
+  const { name, email, password, role } = parsed.data;
   const normalizedEmail = email.toLowerCase();
 
   const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
@@ -34,7 +38,9 @@ export async function POST(request: Request) {
       email: normalizedEmail,
       passwordHash,
       role,
-      guidelinesAcceptedAt: acceptedGuidelines ? new Date() : null,
+      guidelinesAcceptedAt: new Date(),
+      termsAcceptedAt: new Date(),
+      termsVersion: TERMS_VERSION,
     },
   });
 
